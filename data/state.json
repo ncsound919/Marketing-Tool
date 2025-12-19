@@ -1,0 +1,145 @@
+{
+  "profile": {
+    "business_name": "Acme Components",
+    "owner": "You"
+  },
+  "segments": [
+    {
+      "name": "New Leads",
+      "criteria": [
+        "Created < 30 days",
+        "Matches ICP industries"
+      ],
+      "size": 34
+    },
+    {
+      "name": "Active Customers",
+      "criteria": [
+        "Touched product in last 14 days"
+      ],
+      "size": 18
+    },
+    {
+      "name": "Dormant Accounts",
+      "criteria": [
+        "No activity > 30 days"
+      ],
+      "size": 12
+    }
+  ],
+  "campaigns": [
+    {
+      "name": "Onboarding Drip",
+      "segment": "New Leads",
+      "trigger": "Sign-up form",
+      "channel": "Email",
+      "template": "Welcome Series",
+      "status": "scheduled",
+      "next_send": "2025-12-20"
+    },
+    {
+      "name": "Win-back Sequence",
+      "segment": "Dormant Accounts",
+      "trigger": "Inactivity 30d",
+      "channel": "Email",
+      "template": "Re-engagement",
+      "status": "ready",
+      "next_send": "2025-12-20"
+    },
+    {
+      "name": "Post-demo Follow-up",
+      "segment": "Active Customers",
+      "trigger": "Demo completed",
+      "channel": "Email + Call task",
+      "template": "Demo Recap",
+      "status": "running",
+      "next_send": "2025-12-19"
+    }
+  ],
+  "templates": [
+    {
+      "name": "Welcome Series",
+      "medium": "Email",
+      "purpose": "Onboarding",
+      "last_updated": "2025-12-19"
+    },
+    {
+      "name": "Re-engagement",
+      "medium": "Email",
+      "purpose": "Win-back",
+      "last_updated": "2025-12-19"
+    },
+    {
+      "name": "Product Tour Deck",
+      "medium": "Presentation",
+      "purpose": "Sales enablement",
+      "last_updated": "2025-12-19"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "CRM (HubSpot)",
+      "status": "connected",
+      "detail": "API token valid"
+    },
+    {
+      "name": "Email (SendGrid)",
+      "status": "connected",
+      "detail": "Sender verified"
+    },
+    {
+      "name": "Social (LinkedIn)",
+      "status": "pending",
+      "detail": "OAuth to finish"
+    }
+  ],
+  "analytics": {
+    "open_rate": 0.46,
+    "click_rate": 0.23,
+    "reply_rate": 0.14,
+    "conversions": 5,
+    "ab_tests": [
+      {
+        "name": "CTA copy",
+        "winner": "Book a call",
+        "uplift": 0.12
+      },
+      {
+        "name": "Send time",
+        "winner": "09:00",
+        "uplift": 0.08
+      }
+    ]
+  },
+  "feedback": [
+    {
+      "name": "Post-demo pulse",
+      "question": "How clear was the value prop?",
+      "last_sent": "2025-12-19",
+      "responses": 12
+    },
+    {
+      "name": "Onboarding check-in",
+      "question": "Did you activate the core workflow?",
+      "last_sent": "2025-12-19",
+      "responses": 8
+    }
+  ],
+  "actions": [
+    {
+      "title": "A/B test CTA for New Leads",
+      "due": "2025-12-19",
+      "owner": "You"
+    },
+    {
+      "title": "Send nurture to Dormant Accounts",
+      "due": "2025-12-20",
+      "owner": "You"
+    },
+    {
+      "title": "Sync CRM deal stages",
+      "due": "2025-12-20",
+      "owner": "You"
+    }
+  ]
+}
