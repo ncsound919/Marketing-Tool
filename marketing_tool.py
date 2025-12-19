@@ -135,8 +135,11 @@ def sample_state() -> Dict[str, Any]:
 def load_state() -> Dict[str, Any]:
     if not DATA_PATH.exists():
         return reset_state()
-    with DATA_PATH.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    try:
+        with DATA_PATH.open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except json.JSONDecodeError:
+        return reset_state()
 
 
 def save_state(state: Dict[str, Any]) -> None:
@@ -191,9 +194,9 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
     table.add_column("Size", justify="right")
     for segment in state.get("segments", []):
         table.add_row(
-            segment["name"],
-            "\n".join(f"• {c}" for c in segment["criteria"]),
-            str(segment.get("size", "-")),
+            segment.get("name", "—"),
+            "\n".join(f"• {c}" for c in segment.get("criteria", [])),
+            str(segment.get("size", "—")),
         )
     return table
 
@@ -206,10 +209,10 @@ def build_template_table(state: Dict[str, Any]) -> Table:
     table.add_column("Updated")
     for template in state.get("templates", []):
         table.add_row(
-            template["name"],
-            template["medium"],
-            template["purpose"],
-            template["last_updated"],
+            template.get("name", "—"),
+            template.get("medium", "—"),
+            template.get("purpose", "—"),
+            template.get("last_updated", "—"),
         )
     return table
 
@@ -222,7 +225,7 @@ def build_integration_table(state: Dict[str, Any]) -> Table:
     for integration in state.get("integrations", []):
         status = integration.get("status", "unknown")
         table.add_row(
-            integration["name"],
+            integration.get("name", "—"),
             Text(status.title(), style=_status_color(status)),
             integration.get("detail", ""),
         )
@@ -237,8 +240,8 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
     table.add_column("Responses", justify="right")
     for form in state.get("feedback", []):
         table.add_row(
-            form["name"],
-            form["question"],
+            form.get("name", "—"),
+            form.get("question", "—"),
             form.get("last_sent", "-"),
             str(form.get("responses", "-")),
         )
@@ -258,7 +261,7 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
         lines.append("A/B tests:")
         for test in ab_tests:
             lines.append(
-                f" • {test['name']} winner: {test['winner']} (+{format_pct(test.get('uplift', 0))})"
+                f" • {test.get('name', '—')} winner: {test.get('winner', '—')} (+{format_pct(test.get('uplift', 0))})"
             )
     body = "\n".join(lines)
     return Panel(body, title="Analytics & A/B Tests", box=box.ROUNDED)
@@ -268,7 +271,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
     actions = state.get("actions", [])
     if not actions:
         return Panel("You're all set for today.", title="Today's Focus", box=box.ROUNDED)
-    lines = [f"• {item['title']} (due {item['due']})" for item in actions]
+    lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
     return Panel("\n".join(lines), title="Today's Focus", box=box.ROUNDED)
 
 
@@ -283,8 +286,9 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     layout["left"].split_column(Layout(name="campaigns"), Layout(name="segments"))
     layout["right"].split_column(Layout(name="templates"), Layout(name="analytics"))
 
+    business_name = state.get("profile", {}).get("business_name", "B2B Dashboard")
     header_text = Text(
-        f"{state['profile']['business_name']} • B2B Engagement Command Center",
+        f"{business_name} • B2B Engagement Command Center",
         style="bold white on dark_green",
         justify="center",
     )
@@ -318,7 +322,7 @@ def add_campaign(args: argparse.Namespace, state: Dict[str, Any]) -> None:
             "trigger": args.trigger,
             "channel": args.channel,
             "template": args.template,
-            "status": "scheduled",
+            "status": args.status,
             "next_send": args.next_send or _today_iso(),
         }
     )
@@ -345,6 +349,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--channel", help="Primary channel.")
     parser.add_argument("--template", help="Template name to use.")
     parser.add_argument(
+        "--status",
+        choices=["scheduled", "ready", "running", "paused"],
+        default="scheduled",
+        help="Initial campaign status (default: scheduled).",
+    )
+    parser.add_argument(
         "--next-send",
         dest="next_send",
         help="Next send date (YYYY-MM-DD). Defaults to today.",
@@ -365,6 +375,16 @@ def ensure_valid_campaign_args(args: argparse.Namespace) -> None:
         raise SystemExit(f"Missing required fields for campaign: {', '.join(missing)}")
 
 
+def validate_next_send(next_send: str | None) -> str | None:
+    if not next_send:
+        return None
+    try:
+        datetime.strptime(next_send, "%Y-%m-%d")
+        return next_send
+    except ValueError:
+        raise SystemExit("Invalid --next-send date. Use YYYY-MM-DD.")
+
+
 def should_render_dashboard(args: argparse.Namespace) -> bool:
     if args.summary or args.snapshot:
         return True
@@ -375,6 +395,8 @@ def should_render_dashboard(args: argparse.Namespace) -> bool:
 def main() -> None:
     args = parse_args()
     state = load_state()
+
+    args.next_send = validate_next_send(args.next_send)
 
     if args.reset_sample:
         state = reset_state()
@@ -391,7 +413,8 @@ def main() -> None:
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
         console.save_svg(str(args.snapshot_path), title="B2B Engagement Dashboard")
-        console.print(f"Saved snapshot to {args.snapshot_path}")
+        status_console = Console()
+        status_console.print(f"Saved snapshot to {args.snapshot_path}")
 
 
 if __name__ == "__main__":

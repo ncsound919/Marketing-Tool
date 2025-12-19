@@ -24,14 +24,15 @@ Desktop-style command center for enhancing B2B customer engagement through autom
    ```
 3. Add a new automation/campaign targeting a segment:
    ```bash
-   python marketing_tool.py --add-campaign \
-     --name "Partner nurture" \
-     --segment "Active Customers" \
-     --trigger "Quarterly business review" \
-     --channel "Email" \
-     --template "QBR follow-up" \
-     --next-send 2025-01-07
-   ```
+python marketing_tool.py --add-campaign \
+  --name "Partner nurture" \
+  --segment "Active Customers" \
+  --trigger "Quarterly business review" \
+  --channel "Email" \
+  --template "QBR follow-up" \
+  --next-send 2025-01-15  # example date; adjust as needed
+```
+   Optional: set an initial status with `--status ready|running|paused` (defaults to `scheduled`).
 4. Export a snapshot of the dashboard (SVG) to share or pin for your morning routine:
    ```bash
    python marketing_tool.py --snapshot
