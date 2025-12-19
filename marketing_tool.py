@@ -297,7 +297,7 @@ def build_integration_table(state: Dict[str, Any]) -> Table:
             connector.get("name", "—"),
             Text(status.title(), style=_status_color(status)),
             connector.get("last_sync", "—"),
-            connector.get("detail", ""),
+            connector.get("detail", "—"),
         )
     return table
 
@@ -408,10 +408,16 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     layout["analytics"].update(build_analytics_panel(state))
 
     footer_layout = Layout()
-    footer_layout.split_row(
+    footer_layout.split_column(
+        Layout(name="footer_top"),
+        Layout(name="footer_bottom"),
+    )
+    footer_layout["footer_top"].split_row(
         Layout(name="connectors"),
         Layout(name="backend"),
         Layout(name="database"),
+    )
+    footer_layout["footer_bottom"].split_row(
         Layout(name="feedback"),
         Layout(name="actions"),
     )
