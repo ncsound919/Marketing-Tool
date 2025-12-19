@@ -373,7 +373,6 @@ def main() -> None:
     if args.add_campaign:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
-        state = load_state()
 
     should_render = args.summary or args.snapshot or not any(
         [args.add_campaign, args.reset_sample]
