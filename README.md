@@ -7,7 +7,8 @@ Desktop-style command center for enhancing B2B customer engagement through autom
 - **Automation dashboard**: manage trigger-based email/pipeline follow-ups per segment.
 - **Creation studio**: keep marketing templates (email, decks, social) close at hand.
 - **Segmentation**: track key customer groups and their criteria.
-- **Integrations**: quick view of CRM, email, and social connection health.
+- **Connectors & integrations**: quick view of CRM, email, and social connection health plus sync status.
+- **Operational health**: backend services and databases with latency, errors, and storage snapshots.
 - **Analytics & A/B**: monitor open/click/reply rates and experiment winners.
 - **Feedback tools**: surveys/questions you routinely send after demos or onboarding.
 - **Morning focus list**: the top few actions to move engagement forward.

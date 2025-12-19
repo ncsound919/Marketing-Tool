@@ -93,6 +93,58 @@
       "detail": "OAuth to finish"
     }
   ],
+  "connectors": [
+    {
+      "name": "HubSpot contacts",
+      "status": "connected",
+      "last_sync": "2025-12-19",
+      "detail": "Contacts + deals"
+    },
+    {
+      "name": "LinkedIn Ads",
+      "status": "pending",
+      "last_sync": "—",
+      "detail": "Finish OAuth to pull audiences"
+    },
+    {
+      "name": "SendGrid events",
+      "status": "connected",
+      "last_sync": "2025-12-19",
+      "detail": "Bounces + clicks ingested"
+    }
+  ],
+  "backend": [
+    {
+      "service": "Engagement API",
+      "status": "healthy",
+      "latency_ms": 180,
+      "error_rate": "0.2%",
+      "version": "v1.4.2"
+    },
+    {
+      "service": "Automation Worker",
+      "status": "degraded",
+      "latency_ms": 420,
+      "error_rate": "1.1%",
+      "version": "v1.3.9"
+    }
+  ],
+  "databases": [
+    {
+      "name": "Postgres",
+      "role": "Primary",
+      "status": "healthy",
+      "storage_gb": 12.4,
+      "connections": 58
+    },
+    {
+      "name": "Redis",
+      "role": "Cache",
+      "status": "healthy",
+      "storage_gb": 1.1,
+      "connections": 14
+    }
+  ],
   "analytics": {
     "open_rate": 0.46,
     "click_rate": 0.23,
