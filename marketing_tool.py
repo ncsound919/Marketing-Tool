@@ -100,6 +100,58 @@ def sample_state() -> Dict[str, Any]:
             {"name": "Email (SendGrid)", "status": "connected", "detail": "Sender verified"},
             {"name": "Social (LinkedIn)", "status": "pending", "detail": "OAuth to finish"},
         ],
+        "connectors": [
+            {
+                "name": "HubSpot contacts",
+                "status": "connected",
+                "last_sync": _today_iso(),
+                "detail": "Contacts + deals",
+            },
+            {
+                "name": "LinkedIn Ads",
+                "status": "pending",
+                "last_sync": "—",
+                "detail": "Finish OAuth to pull audiences",
+            },
+            {
+                "name": "SendGrid events",
+                "status": "connected",
+                "last_sync": _today_iso(),
+                "detail": "Bounces + clicks ingested",
+            },
+        ],
+        "backend": [
+            {
+                "service": "Engagement API",
+                "status": "healthy",
+                "latency_ms": 180,
+                "error_rate": "0.2%",
+                "version": "v1.4.2",
+            },
+            {
+                "service": "Automation Worker",
+                "status": "degraded",
+                "latency_ms": 420,
+                "error_rate": "1.1%",
+                "version": "v1.3.9",
+            },
+        ],
+        "databases": [
+            {
+                "name": "Postgres",
+                "role": "Primary",
+                "status": "healthy",
+                "storage_gb": 12.4,
+                "connections": 58,
+            },
+            {
+                "name": "Redis",
+                "role": "Cache",
+                "status": "healthy",
+                "storage_gb": 1.1,
+                "connections": 14,
+            },
+        ],
         "analytics": {
             "open_rate": 0.46,
             "click_rate": 0.23,
@@ -155,7 +207,19 @@ def reset_state() -> Dict[str, Any]:
 
 
 def _status_color(status: str) -> str:
-    mapping = {"running": "green", "scheduled": "cyan", "ready": "yellow", "paused": "red"}
+    mapping = {
+        "running": "green",
+        "scheduled": "cyan",
+        "ready": "yellow",
+        "paused": "red",
+        "connected": "green",
+        "healthy": "green",
+        "degraded": "yellow",
+        "maintenance": "magenta",
+        "pending": "yellow",
+        "offline": "red",
+        "failed": "red",
+    }
     return mapping.get(status.lower(), "white")
 
 
@@ -218,16 +282,60 @@ def build_template_table(state: Dict[str, Any]) -> Table:
 
 
 def build_integration_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Integrations", box=box.SIMPLE)
+    table = Table(title="Connectors", box=box.SIMPLE)
     table.add_column("System")
     table.add_column("Status")
+    table.add_column("Last Sync")
     table.add_column("Detail")
-    for integration in state.get("integrations", []):
-        status = integration.get("status", "unknown")
+    connectors = state.get("connectors")
+    # Support older saved states that only tracked integrations.
+    if connectors is None:
+        connectors = state.get("integrations", [])
+    for connector in connectors:
+        status = connector.get("status", "unknown")
         table.add_row(
-            integration.get("name", "—"),
+            connector.get("name", "—"),
             Text(status.title(), style=_status_color(status)),
-            integration.get("detail", ""),
+            connector.get("last_sync", "—"),
+            connector.get("detail", "—"),
+        )
+    return table
+
+
+def build_backend_table(state: Dict[str, Any]) -> Table:
+    table = Table(title="Backend Services", box=box.SIMPLE)
+    table.add_column("Service")
+    table.add_column("Status")
+    table.add_column("Latency (ms)", justify="right")
+    table.add_column("Errors")
+    table.add_column("Version")
+    for service in state.get("backend", []):
+        status = service.get("status", "unknown")
+        table.add_row(
+            service.get("service", "—"),
+            Text(status.title(), style=_status_color(status)),
+            str(service.get("latency_ms", "—")),
+            str(service.get("error_rate", "—")),
+            service.get("version", "—"),
+        )
+    return table
+
+
+def build_database_table(state: Dict[str, Any]) -> Table:
+    table = Table(title="Databases", box=box.SIMPLE)
+    table.add_column("Name")
+    table.add_column("Role")
+    table.add_column("Status")
+    table.add_column("Storage (GB)", justify="right")
+    table.add_column("Connections", justify="right")
+    for db in state.get("databases", []):
+        status = db.get("status", "unknown")
+        table.add_row(
+            db.get("name", "—"),
+            db.get("role", "—"),
+            Text(status.title(), style=_status_color(status)),
+            str(db.get("storage_gb", "—")),
+            str(db.get("connections", "—")),
         )
     return table
 
@@ -300,12 +408,22 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     layout["analytics"].update(build_analytics_panel(state))
 
     footer_layout = Layout()
-    footer_layout.split_row(
-        Layout(name="integrations"),
+    footer_layout.split_column(
+        Layout(name="footer_top"),
+        Layout(name="footer_bottom"),
+    )
+    footer_layout["footer_top"].split_row(
+        Layout(name="connectors"),
+        Layout(name="backend"),
+        Layout(name="database"),
+    )
+    footer_layout["footer_bottom"].split_row(
         Layout(name="feedback"),
         Layout(name="actions"),
     )
-    footer_layout["integrations"].update(build_integration_table(state))
+    footer_layout["connectors"].update(build_integration_table(state))
+    footer_layout["backend"].update(build_backend_table(state))
+    footer_layout["database"].update(build_database_table(state))
     footer_layout["feedback"].update(build_feedback_table(state))
     footer_layout["actions"].update(build_actions_panel(state))
     layout["footer"].update(footer_layout)
