@@ -18,7 +18,7 @@ from rich.text import Text
 
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "data" / "state.json"
-DEFAULT_SNAPSHOT = BASE_DIR / "docs" / "dashboard_snapshot.svg"
+DEFAULT_SNAPSHOT_PATH = BASE_DIR / "docs" / "dashboard_snapshot.svg"
 
 
 def _today_iso() -> str:
@@ -156,6 +156,10 @@ def _status_color(status: str) -> str:
     return mapping.get(status.lower(), "white")
 
 
+def format_pct(value: float) -> str:
+    return f"{value * 100:.1f}%"
+
+
 def build_campaign_table(state: Dict[str, Any]) -> Table:
     table = Table(title="Automation", box=box.SIMPLE_HEAVY)
     table.add_column("Name")
@@ -166,14 +170,15 @@ def build_campaign_table(state: Dict[str, Any]) -> Table:
     table.add_column("Next")
     table.add_column("Status")
     for campaign in state.get("campaigns", []):
-        status = Text(campaign["status"].title(), style=_status_color(campaign["status"]))
+        status_value = campaign.get("status", "unknown")
+        status = Text(status_value.title(), style=_status_color(status_value))
         table.add_row(
-            campaign["name"],
-            campaign["segment"],
-            campaign["trigger"],
-            campaign["channel"],
-            campaign["template"],
-            campaign.get("next_send", "-"),
+            campaign.get("name", "—"),
+            campaign.get("segment", "—"),
+            campaign.get("trigger", "—"),
+            campaign.get("channel", "—"),
+            campaign.get("template", "—"),
+            campaign.get("next_send", "—"),
             status,
         )
     return table
@@ -242,13 +247,10 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
 
 def build_analytics_panel(state: Dict[str, Any]) -> Panel:
     analytics = state.get("analytics", {})
-    def pct(value: float) -> str:
-        return f"{value*100:.0f}%"
-
     lines = [
-        f"Open rate: {pct(analytics.get('open_rate', 0))}",
-        f"Click rate: {pct(analytics.get('click_rate', 0))}",
-        f"Reply rate: {pct(analytics.get('reply_rate', 0))}",
+        f"Open rate: {format_pct(analytics.get('open_rate', 0))}",
+        f"Click rate: {format_pct(analytics.get('click_rate', 0))}",
+        f"Reply rate: {format_pct(analytics.get('reply_rate', 0))}",
         f"Conversions this week: {analytics.get('conversions', 0)}",
     ]
     ab_tests = analytics.get("ab_tests", [])
@@ -256,7 +258,7 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
         lines.append("A/B tests:")
         for test in ab_tests:
             lines.append(
-                f" • {test['name']} winner: {test['winner']} (+{pct(test.get('uplift', 0))})"
+                f" • {test['name']} winner: {test['winner']} (+{format_pct(test.get('uplift', 0))})"
             )
     body = "\n".join(lines)
     return Panel(body, title="Analytics & A/B Tests", box=box.ROUNDED)
@@ -332,7 +334,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--snapshot-path",
         type=Path,
-        default=DEFAULT_SNAPSHOT,
+        default=DEFAULT_SNAPSHOT_PATH,
         help="Where to save the SVG snapshot.",
     )
     parser.add_argument("--reset-sample", action="store_true", help="Restore sample data.")
@@ -363,6 +365,13 @@ def ensure_valid_campaign_args(args: argparse.Namespace) -> None:
         raise SystemExit(f"Missing required fields for campaign: {', '.join(missing)}")
 
 
+def should_render_dashboard(args: argparse.Namespace) -> bool:
+    if args.summary or args.snapshot:
+        return True
+    # Default to rendering the dashboard when no mutating actions are requested.
+    return not any([args.add_campaign, args.reset_sample])
+
+
 def main() -> None:
     args = parse_args()
     state = load_state()
@@ -374,12 +383,9 @@ def main() -> None:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
 
-    should_render = args.summary or args.snapshot or not any(
-        [args.add_campaign, args.reset_sample]
-    )
     console = Console(record=args.snapshot)
 
-    if should_render:
+    if should_render_dashboard(args):
         render_dashboard(state, console)
 
     if args.snapshot:
