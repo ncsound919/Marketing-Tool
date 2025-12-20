@@ -53,8 +53,8 @@
         "cp marketing_tool.py src-tauri/python/"
       ],
       "copy_files_windows": [
-        "copy data\\state.json src-tauri\\data\\",
-        "copy marketing_tool.py src-tauri\\python\\"
+        "copy data\\state.json src-tauri\\data\\state.json",
+        "copy marketing_tool.py src-tauri\\python\\marketing_tool.py"
       ],
       "run": "npm run tauri dev",
       "note": "Use copy_files_unix commands on macOS/Linux, copy_files_windows on Windows"
