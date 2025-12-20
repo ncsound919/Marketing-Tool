@@ -1,4 +1,4 @@
-
+# Marketing Desktop App Migration Plan
 
 ```json
 {
@@ -27,7 +27,7 @@
       {
         "feature": "Campaign Builder",
         "from": "CLI args (--add-campaign --name ...)",
-        "to": "Multi-platform form + preview",
+        "to": "Multi-channel form + preview",
         "benefit": "Visual platform selection, live previews"
       },
       {
@@ -43,13 +43,22 @@
       "state": "Your state.json (enhanced with IPC)",
       "build": "npm run tauri build → .exe/.app/AppImage"
     },
-    "migration_commands": [
-      "npm create tauri-app marketing-studio -- --ui react --typescript",
-      "cd marketing-studio && npm install",
-      "cp state.json src-tauri/data/",
-      "cp marketing_tool.py src-tauri/python/",
-      "npm run tauri dev"
-    ],
+    "migration_commands": {
+      "unix_macos": [
+        "npm create tauri-app marketing-studio -- --ui react --typescript",
+        "cd marketing-studio && npm install",
+        "cp data/state.json src-tauri/data/",
+        "cp marketing_tool.py src-tauri/python/",
+        "npm run tauri dev"
+      ],
+      "windows_powershell": [
+        "npm create tauri-app marketing-studio -- --ui react --typescript",
+        "cd marketing-studio; npm install",
+        "Copy-Item data/state.json -Destination src-tauri/data/",
+        "Copy-Item marketing_tool.py -Destination src-tauri/python/",
+        "npm run tauri dev"
+      ]
+    },
     "files_provided": [
       "tauri_main.rs (Rust IPC handler)",
       "Dashboard.tsx (React main UI)",
@@ -75,5 +84,6 @@
 
 **Your Python CLI → Desktop App in 3 commands.** 🚀
 
-Citations:
-[1] marketing_tool.py https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/128819417/9da5c36e-6275-47d1-a56d-dfe27db80010/marketing_tool.py
+## References
+
+[1] `marketing_tool.py` - See the main marketing tool file in this repository
