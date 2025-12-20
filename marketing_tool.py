@@ -15,10 +15,25 @@ from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+from rich.theme import Theme
 
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "data" / "state.json"
 DEFAULT_SNAPSHOT_PATH = BASE_DIR / "docs" / "dashboard_snapshot.svg"
+GLASS_BACKGROUND = "#0b1220"
+ACCENT_CYAN = "#38bdf8"
+ACCENT_PURPLE = "#a78bfa"
+ACCENT_GREEN = "#22c55e"
+
+DASHBOARD_THEME = Theme(
+    {
+        "muted": "#cbd5e1",
+        "info": "#93c5fd",
+        "success": ACCENT_GREEN,
+        "warning": "#eab308",
+        "danger": "#ef4444",
+    }
+)
 
 
 def _today_iso() -> str:
@@ -228,7 +243,16 @@ def format_pct(value: float) -> str:
 
 
 def build_campaign_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Automation", box=box.SIMPLE_HEAVY)
+    table = Table(
+        title="Automation",
+        box=box.SIMPLE_HEAVY,
+        expand=True,
+        border_style=ACCENT_CYAN,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_CYAN}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Name")
     table.add_column("Segment")
     table.add_column("Trigger")
@@ -252,7 +276,16 @@ def build_campaign_table(state: Dict[str, Any]) -> Table:
 
 
 def build_segment_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Segments", box=box.MINIMAL_HEAVY_HEAD)
+    table = Table(
+        title="Segments",
+        box=box.MINIMAL_HEAVY_HEAD,
+        expand=True,
+        border_style=ACCENT_PURPLE,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_PURPLE}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Name")
     table.add_column("Criteria")
     table.add_column("Size", justify="right")
@@ -266,7 +299,16 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
 
 
 def build_template_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Creation Studio", box=box.MINIMAL_DOUBLE_HEAD)
+    table = Table(
+        title="Creation Studio",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=True,
+        border_style=ACCENT_GREEN,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_GREEN}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Template")
     table.add_column("Medium")
     table.add_column("Purpose")
@@ -282,7 +324,16 @@ def build_template_table(state: Dict[str, Any]) -> Table:
 
 
 def build_integration_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Connectors", box=box.SIMPLE)
+    table = Table(
+        title="Connectors",
+        box=box.SIMPLE,
+        expand=True,
+        border_style=ACCENT_CYAN,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_CYAN}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("System")
     table.add_column("Status")
     table.add_column("Last Sync")
@@ -303,7 +354,16 @@ def build_integration_table(state: Dict[str, Any]) -> Table:
 
 
 def build_backend_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Backend Services", box=box.SIMPLE)
+    table = Table(
+        title="Backend Services",
+        box=box.SIMPLE,
+        expand=True,
+        border_style=ACCENT_PURPLE,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_PURPLE}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Service")
     table.add_column("Status")
     table.add_column("Latency (ms)", justify="right")
@@ -322,7 +382,16 @@ def build_backend_table(state: Dict[str, Any]) -> Table:
 
 
 def build_database_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Databases", box=box.SIMPLE)
+    table = Table(
+        title="Databases",
+        box=box.SIMPLE,
+        expand=True,
+        border_style=ACCENT_GREEN,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_GREEN}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Name")
     table.add_column("Role")
     table.add_column("Status")
@@ -341,7 +410,16 @@ def build_database_table(state: Dict[str, Any]) -> Table:
 
 
 def build_feedback_table(state: Dict[str, Any]) -> Table:
-    table = Table(title="Feedback & Surveys", box=box.SIMPLE)
+    table = Table(
+        title="Feedback & Surveys",
+        box=box.SIMPLE,
+        expand=True,
+        border_style=ACCENT_CYAN,
+        style=f"on {GLASS_BACKGROUND}",
+        header_style="bold white",
+        title_style=f"bold {ACCENT_CYAN}",
+        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+    )
     table.add_column("Name")
     table.add_column("Question")
     table.add_column("Last Sent")
@@ -372,15 +450,37 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
                 f" • {test.get('name', '—')} winner: {test.get('winner', '—')} (+{format_pct(test.get('uplift', 0))})"
             )
     body = "\n".join(lines)
-    return Panel(body, title="Analytics & A/B Tests", box=box.ROUNDED)
+    return Panel(
+        body,
+        title="Analytics & A/B Tests",
+        box=box.ROUNDED,
+        border_style=ACCENT_PURPLE,
+        style=f"on {GLASS_BACKGROUND}",
+        title_align="left",
+        padding=(1, 2),
+    )
 
 
 def build_actions_panel(state: Dict[str, Any]) -> Panel:
     actions = state.get("actions", [])
     if not actions:
-        return Panel("You're all set for today.", title="Today's Focus", box=box.ROUNDED)
+        return Panel(
+            "You're all set for today.",
+            title="Today's Focus",
+            box=box.ROUNDED,
+            border_style=ACCENT_GREEN,
+            style=f"on {GLASS_BACKGROUND}",
+            padding=(1, 2),
+        )
     lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
-    return Panel("\n".join(lines), title="Today's Focus", box=box.ROUNDED)
+    return Panel(
+        "\n".join(lines),
+        title="Today's Focus",
+        box=box.ROUNDED,
+        border_style=ACCENT_GREEN,
+        style=f"on {GLASS_BACKGROUND}",
+        padding=(1, 2),
+    )
 
 
 def render_dashboard(state: Dict[str, Any], console: Console) -> None:
@@ -397,10 +497,24 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     business_name = state.get("profile", {}).get("business_name", "B2B Dashboard")
     header_text = Text(
         f"{business_name} • B2B Engagement Command Center",
-        style="bold white on dark_green",
+        style="bold #e2e8f0",
         justify="center",
     )
-    layout["header"].update(Align.center(header_text))
+    subtitle = Text(
+        f"{state.get('profile', {}).get('owner', 'Owner')}  •  Updated {datetime.now().strftime('%b %d, %Y %H:%M')}",
+        style="muted",
+    )
+    layout["header"].update(
+        Panel(
+            Align.center(header_text),
+            subtitle_align="right",
+            subtitle=subtitle,
+            border_style=ACCENT_CYAN,
+            box=box.ROUNDED,
+            style=f"on {GLASS_BACKGROUND}",
+            padding=(0, 2),
+        )
+    )
 
     layout["campaigns"].update(build_campaign_table(state))
     layout["segments"].update(build_segment_table(state))
@@ -523,7 +637,7 @@ def main() -> None:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
 
-    console = Console(record=args.snapshot)
+    console = Console(record=args.snapshot, theme=DASHBOARD_THEME, style="muted", color_system="truecolor")
 
     if should_render_dashboard(args):
         render_dashboard(state, console)
@@ -531,7 +645,7 @@ def main() -> None:
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
         console.save_svg(str(args.snapshot_path), title="B2B Engagement Dashboard")
-        status_console = Console()
+        status_console = Console(theme=DASHBOARD_THEME)
         status_console.print(f"Saved snapshot to {args.snapshot_path}")
 
 
