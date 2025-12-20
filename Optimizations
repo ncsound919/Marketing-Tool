@@ -49,8 +49,8 @@
         "cd marketing-studio && npm install"
       ],
       "copy_files_unix": [
-        "cp data/state.json src-tauri/data/",
-        "cp marketing_tool.py src-tauri/python/"
+        "cp data/state.json src-tauri/data/state.json",
+        "cp marketing_tool.py src-tauri/python/marketing_tool.py"
       ],
       "copy_files_windows": [
         "copy data\\state.json src-tauri\\data\\state.json",
