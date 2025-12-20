@@ -26,6 +26,12 @@ COLOR_ACCENT_PURPLE = "#a78bfa"
 COLOR_ACCENT_GREEN = "#22c55e"
 STYLE_MUTED = "muted"
 DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
+THEME_COLORS = {
+    "background": COLOR_BG_GLASS,
+    "accent_cyan": COLOR_ACCENT_CYAN,
+    "accent_purple": COLOR_ACCENT_PURPLE,
+    "accent_green": COLOR_ACCENT_GREEN,
+}
 
 DASHBOARD_THEME = Theme(
     {
@@ -503,7 +509,7 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
         justify="center",
     )
     subtitle = Text(
-        f"{state.get('profile', {}).get('owner', 'Owner')}  •  Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
+        f"{state.get('profile', {}).get('owner', 'Owner')} • Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
         style=STYLE_MUTED,
     )
     layout["header"].update(
