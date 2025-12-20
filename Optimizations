@@ -27,7 +27,7 @@
       {
         "feature": "Campaign Builder",
         "from": "CLI args (--add-campaign --name ...)",
-        "to": "Multi-platform form + preview",
+        "to": "Multi-channel form + preview",
         "benefit": "Visual platform selection, live previews"
       },
       {
