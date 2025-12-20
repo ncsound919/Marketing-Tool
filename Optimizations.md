@@ -20,7 +20,7 @@
       },
       {
         "feature": "State Management",
-        "from": "state.json (manual load/save)",
+        "from": "data/state.json (manual load/save)",
         "to": "Tauri IPC + auto-sync (5s intervals)",
         "benefit": "Live updates, type-safe, crash recovery"
       },
@@ -40,7 +40,7 @@
     "tech_stack": {
       "frontend": "React 18 + TypeScript + Vite",
       "backend": "Tauri (Rust) + Python subprocess bridge",
-      "state": "Your state.json (enhanced with IPC)",
+      "state": "Your data/state.json (enhanced with IPC)",
       "build": "npm run tauri build → .exe/.app/AppImage"
     },
     "migration_commands": {
@@ -74,7 +74,7 @@
       "✅ Hot reload development",
       "✅ TypeScript safety",
       "✅ Your Python code preserved",
-      "✅ Same state.json format",
+      "✅ Same data/state.json format",
       "✅ Production build system"
     ],
     "next_step": "Run: npm create tauri-app marketing-studio -- --ui react --typescript"
