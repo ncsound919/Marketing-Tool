@@ -1,4 +1,6 @@
+# Marketing Desktop App Optimization Plan
 
+This document outlines the optimization plan for migrating the Python CLI dashboard to a production desktop application.
 
 ```json
 {
@@ -73,7 +75,10 @@
 }
 ```
 
+## Summary
+
 **Your Python CLI → Desktop App in 3 commands.** 🚀
 
-Citations:
+## Citations
+
 [1] marketing_tool.py (see `marketing_tool.py` in this repository)
