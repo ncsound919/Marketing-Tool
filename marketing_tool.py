@@ -26,6 +26,15 @@ COLOR_ACCENT_PURPLE = "#a78bfa"
 COLOR_ACCENT_GREEN = "#22c55e"
 STYLE_MUTED = "muted"
 DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
+THEME_COLORS = {
+    "background": COLOR_BG_GLASS,
+    "accent_cyan": COLOR_ACCENT_CYAN,
+    "accent_purple": COLOR_ACCENT_PURPLE,
+    "accent_green": COLOR_ACCENT_GREEN,
+}
+BACKGROUND_STYLE = f"on {THEME_COLORS['background']}"
+DIM_BACKGROUND_STYLE = f"dim {BACKGROUND_STYLE}"
+GLASS_ROW_STYLES = [BACKGROUND_STYLE, DIM_BACKGROUND_STYLE]
 
 
 DASHBOARD_THEME = Theme(
@@ -255,10 +264,10 @@ def build_campaign_table(state: Dict[str, Any]) -> Table:
         box=box.SIMPLE_HEAVY,
         expand=True,
         border_style=COLOR_ACCENT_CYAN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_CYAN}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Name")
     table.add_column("Segment")
@@ -288,10 +297,10 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
         box=box.MINIMAL_HEAVY_HEAD,
         expand=True,
         border_style=COLOR_ACCENT_PURPLE,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_PURPLE}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Name")
     table.add_column("Criteria")
@@ -311,10 +320,10 @@ def build_template_table(state: Dict[str, Any]) -> Table:
         box=box.MINIMAL_DOUBLE_HEAD,
         expand=True,
         border_style=COLOR_ACCENT_GREEN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_GREEN}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Template")
     table.add_column("Medium")
@@ -336,10 +345,10 @@ def build_integration_table(state: Dict[str, Any]) -> Table:
         box=box.SIMPLE,
         expand=True,
         border_style=COLOR_ACCENT_CYAN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_CYAN}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("System")
     table.add_column("Status")
@@ -366,10 +375,10 @@ def build_backend_table(state: Dict[str, Any]) -> Table:
         box=box.SIMPLE,
         expand=True,
         border_style=COLOR_ACCENT_PURPLE,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_PURPLE}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Service")
     table.add_column("Status")
@@ -394,10 +403,10 @@ def build_database_table(state: Dict[str, Any]) -> Table:
         box=box.SIMPLE,
         expand=True,
         border_style=COLOR_ACCENT_GREEN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_GREEN}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Name")
     table.add_column("Role")
@@ -422,10 +431,10 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
         box=box.SIMPLE,
         expand=True,
         border_style=COLOR_ACCENT_CYAN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         header_style="bold white",
         title_style=f"bold {COLOR_ACCENT_CYAN}",
-        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
+        row_styles=GLASS_ROW_STYLES,
     )
     table.add_column("Name")
     table.add_column("Question")
@@ -462,7 +471,7 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
         title="Analytics & A/B Tests",
         box=box.ROUNDED,
         border_style=COLOR_ACCENT_PURPLE,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         title_align="left",
         padding=(1, 2),
     )
@@ -476,7 +485,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
             title="Today's Focus",
             box=box.ROUNDED,
             border_style=COLOR_ACCENT_GREEN,
-            style=f"on {COLOR_BG_GLASS}",
+            style=BACKGROUND_STYLE,
             padding=(1, 2),
         )
     lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
@@ -485,7 +494,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
         title="Today's Focus",
         box=box.ROUNDED,
         border_style=COLOR_ACCENT_GREEN,
-        style=f"on {COLOR_BG_GLASS}",
+        style=BACKGROUND_STYLE,
         padding=(1, 2),
     )
 
@@ -501,14 +510,15 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     layout["left"].split_column(Layout(name="campaigns"), Layout(name="segments"))
     layout["right"].split_column(Layout(name="templates"), Layout(name="analytics"))
 
-    business_name = state.get("profile", {}).get("business_name", "B2B Dashboard")
+    profile = state.get("profile", {})
+    business_name = profile.get("business_name", "B2B Dashboard")
     header_text = Text(
         f"{business_name} • B2B Engagement Command Center",
         style="bold #e2e8f0",
         justify="center",
     )
     subtitle = Text(
-        f"{state.get('profile', {}).get('owner', 'Owner')} • Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
+        f"{profile.get('owner', 'Owner')} • Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
         style=STYLE_MUTED,
     )
     layout["header"].update(
@@ -518,7 +528,7 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
             subtitle=subtitle,
             border_style=COLOR_ACCENT_CYAN,
             box=box.ROUNDED,
-            style=f"on {COLOR_BG_GLASS}",
+            style=BACKGROUND_STYLE,
             padding=(0, 2),
         )
     )
