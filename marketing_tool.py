@@ -20,20 +20,16 @@ from rich.theme import Theme
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "data" / "state.json"
 DEFAULT_SNAPSHOT_PATH = BASE_DIR / "docs" / "dashboard_snapshot.svg"
-COLOR_BG_GLASS = "#0b1220"
+COLOR_BG_PRIMARY = "#0b1220"
+COLOR_BG_SECONDARY = "#11192d"
 COLOR_ACCENT_CYAN = "#38bdf8"
 COLOR_ACCENT_PURPLE = "#a78bfa"
 COLOR_ACCENT_GREEN = "#22c55e"
+COLOR_ACCENT_AMBER = "#f59e0b"
 STYLE_MUTED = "muted"
 DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
-THEME_COLORS = {
-    "background": COLOR_BG_GLASS,
-    "accent_cyan": COLOR_ACCENT_CYAN,
-    "accent_purple": COLOR_ACCENT_PURPLE,
-    "accent_green": COLOR_ACCENT_GREEN,
-}
-BACKGROUND_STYLE = f"on {THEME_COLORS['background']}"
-DIM_BACKGROUND_STYLE = f"dim {BACKGROUND_STYLE}"
+BACKGROUND_STYLE = f"on {COLOR_BG_PRIMARY}"
+DIM_BACKGROUND_STYLE = f"on {COLOR_BG_SECONDARY}"
 GLASS_ROW_STYLES = [BACKGROUND_STYLE, DIM_BACKGROUND_STYLE]
 
 
@@ -470,7 +466,7 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
         body,
         title="Analytics & A/B Tests",
         box=box.ROUNDED,
-        border_style=COLOR_ACCENT_PURPLE,
+        border_style=COLOR_ACCENT_AMBER,
         style=BACKGROUND_STYLE,
         title_align="left",
         padding=(1, 2),
@@ -484,7 +480,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
             "You're all set for today.",
             title="Today's Focus",
             box=box.ROUNDED,
-            border_style=COLOR_ACCENT_GREEN,
+            border_style=COLOR_ACCENT_AMBER,
             style=BACKGROUND_STYLE,
             padding=(1, 2),
         )
@@ -493,7 +489,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
         "\n".join(lines),
         title="Today's Focus",
         box=box.ROUNDED,
-        border_style=COLOR_ACCENT_GREEN,
+        border_style=COLOR_ACCENT_AMBER,
         style=BACKGROUND_STYLE,
         padding=(1, 2),
     )
@@ -513,7 +509,7 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
     profile = state.get("profile", {})
     business_name = profile.get("business_name", "B2B Dashboard")
     header_text = Text(
-        f"{business_name} • B2B Engagement Command Center",
+        f"✦ {business_name} • B2B Engagement Command Center",
         style="bold #e2e8f0",
         justify="center",
     )
@@ -526,7 +522,7 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
             Align.center(header_text),
             subtitle_align="right",
             subtitle=subtitle,
-            border_style=COLOR_ACCENT_CYAN,
+            border_style=COLOR_ACCENT_AMBER,
             box=box.ROUNDED,
             style=BACKGROUND_STYLE,
             padding=(0, 2),
