@@ -46,7 +46,7 @@
     "migration_commands": [
       "npm create tauri-app marketing-studio -- --ui react --typescript",
       "cd marketing-studio && npm install",
-      "cp state.json src-tauri/data/",
+      "cp data/state.json src-tauri/data/",
       "cp marketing_tool.py src-tauri/python/",
       "npm run tauri dev"
     ],
