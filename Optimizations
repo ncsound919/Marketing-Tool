@@ -43,13 +43,22 @@
       "state": "Your state.json (enhanced with IPC)",
       "build": "npm run tauri build → .exe/.app/AppImage"
     },
-    "migration_commands": [
-      "npm create tauri-app marketing-studio -- --ui react --typescript",
-      "cd marketing-studio && npm install",
-      "cp data/state.json src-tauri/data/",
-      "cp marketing_tool.py src-tauri/python/",
-      "npm run tauri dev"
-    ],
+    "migration_commands": {
+      "setup": [
+        "npm create tauri-app marketing-studio -- --ui react --typescript",
+        "cd marketing-studio && npm install"
+      ],
+      "copy_files_unix": [
+        "cp data/state.json src-tauri/data/",
+        "cp marketing_tool.py src-tauri/python/"
+      ],
+      "copy_files_windows": [
+        "copy data\\state.json src-tauri\\data\\",
+        "copy marketing_tool.py src-tauri\\python\\"
+      ],
+      "run": "npm run tauri dev",
+      "note": "Use copy_files_unix commands on macOS/Linux, copy_files_windows on Windows"
+    },
     "files_provided": [
       "tauri_main.rs (Rust IPC handler)",
       "Dashboard.tsx (React main UI)",
