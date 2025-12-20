@@ -26,12 +26,7 @@ COLOR_ACCENT_PURPLE = "#a78bfa"
 COLOR_ACCENT_GREEN = "#22c55e"
 STYLE_MUTED = "muted"
 DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
-THEME_COLORS = {
-    "background": COLOR_BG_GLASS,
-    "accent_cyan": COLOR_ACCENT_CYAN,
-    "accent_purple": COLOR_ACCENT_PURPLE,
-    "accent_green": COLOR_ACCENT_GREEN,
-}
+
 
 DASHBOARD_THEME = Theme(
     {
@@ -42,6 +37,10 @@ DASHBOARD_THEME = Theme(
         "danger": "#ef4444",
     }
 )
+
+
+def themed_console(*, record: bool = False) -> Console:
+    return Console(record=record, theme=DASHBOARD_THEME, style=STYLE_MUTED, color_system="truecolor")
 
 
 def _today_iso() -> str:
@@ -645,7 +644,7 @@ def main() -> None:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
 
-    console = Console(record=args.snapshot, theme=DASHBOARD_THEME, style=STYLE_MUTED, color_system="truecolor")
+    console = themed_console(record=args.snapshot)
 
     if should_render_dashboard(args):
         render_dashboard(state, console)
@@ -653,7 +652,7 @@ def main() -> None:
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
         console.save_svg(str(args.snapshot_path), title="B2B Engagement Dashboard")
-        status_console = Console(theme=DASHBOARD_THEME)
+        status_console = themed_console()
         status_console.print(f"Saved snapshot to {args.snapshot_path}")
 
 
