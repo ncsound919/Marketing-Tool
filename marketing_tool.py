@@ -26,7 +26,6 @@ COLOR_ACCENT_CYAN = "#38bdf8"
 COLOR_ACCENT_PURPLE = "#a78bfa"
 COLOR_ACCENT_GREEN = "#22c55e"
 COLOR_ACCENT_AMBER = "#f59e0b"
-STYLE_MUTED = "muted"
 DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
 BACKGROUND_STYLE = f"on {COLOR_BG_PRIMARY}"
 DIM_BACKGROUND_STYLE = f"on {COLOR_BG_SECONDARY}"
@@ -42,6 +41,7 @@ DASHBOARD_THEME = Theme(
         "danger": "#ef4444",
     }
 )
+STYLE_MUTED = "muted"  # matches the "muted" key defined in DASHBOARD_THEME
 
 
 def themed_console(*, record: bool = False) -> Console:
@@ -495,7 +495,8 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
     )
 
 
-def render_dashboard(state: Dict[str, Any], console: Console) -> None:
+def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | None = None) -> None:
+    now = now or datetime.now()
     layout = Layout()
     layout.split_column(
         Layout(name="header", size=3),
@@ -513,10 +514,7 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
         style="bold #e2e8f0",
         justify="center",
     )
-    subtitle = Text(
-        f"{profile.get('owner', 'Owner')} • Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
-        style=STYLE_MUTED,
-    )
+    subtitle = Text(f"{profile.get('owner', 'Owner')} • Updated {now.strftime(DATETIME_HEADER_FMT)}", style=STYLE_MUTED)
     layout["header"].update(
         Panel(
             Align.center(header_text),
@@ -652,8 +650,10 @@ def main() -> None:
 
     console = themed_console(record=args.snapshot)
 
+    render_time = datetime.now()
+
     if should_render_dashboard(args):
-        render_dashboard(state, console)
+        render_dashboard(state, console, now=render_time)
 
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
