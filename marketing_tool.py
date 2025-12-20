@@ -20,16 +20,18 @@ from rich.theme import Theme
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "data" / "state.json"
 DEFAULT_SNAPSHOT_PATH = BASE_DIR / "docs" / "dashboard_snapshot.svg"
-GLASS_BACKGROUND = "#0b1220"
-ACCENT_CYAN = "#38bdf8"
-ACCENT_PURPLE = "#a78bfa"
-ACCENT_GREEN = "#22c55e"
+COLOR_BG_GLASS = "#0b1220"
+COLOR_ACCENT_CYAN = "#38bdf8"
+COLOR_ACCENT_PURPLE = "#a78bfa"
+COLOR_ACCENT_GREEN = "#22c55e"
+STYLE_MUTED = "muted"
+DATETIME_HEADER_FMT = "%b %d, %Y %H:%M"
 
 DASHBOARD_THEME = Theme(
     {
         "muted": "#cbd5e1",
         "info": "#93c5fd",
-        "success": ACCENT_GREEN,
+        "success": COLOR_ACCENT_GREEN,
         "warning": "#eab308",
         "danger": "#ef4444",
     }
@@ -247,11 +249,11 @@ def build_campaign_table(state: Dict[str, Any]) -> Table:
         title="Automation",
         box=box.SIMPLE_HEAVY,
         expand=True,
-        border_style=ACCENT_CYAN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_CYAN,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_CYAN}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_CYAN}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Name")
     table.add_column("Segment")
@@ -280,11 +282,11 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
         title="Segments",
         box=box.MINIMAL_HEAVY_HEAD,
         expand=True,
-        border_style=ACCENT_PURPLE,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_PURPLE,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_PURPLE}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_PURPLE}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Name")
     table.add_column("Criteria")
@@ -303,11 +305,11 @@ def build_template_table(state: Dict[str, Any]) -> Table:
         title="Creation Studio",
         box=box.MINIMAL_DOUBLE_HEAD,
         expand=True,
-        border_style=ACCENT_GREEN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_GREEN,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_GREEN}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_GREEN}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Template")
     table.add_column("Medium")
@@ -328,11 +330,11 @@ def build_integration_table(state: Dict[str, Any]) -> Table:
         title="Connectors",
         box=box.SIMPLE,
         expand=True,
-        border_style=ACCENT_CYAN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_CYAN,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_CYAN}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_CYAN}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("System")
     table.add_column("Status")
@@ -358,11 +360,11 @@ def build_backend_table(state: Dict[str, Any]) -> Table:
         title="Backend Services",
         box=box.SIMPLE,
         expand=True,
-        border_style=ACCENT_PURPLE,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_PURPLE,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_PURPLE}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_PURPLE}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Service")
     table.add_column("Status")
@@ -386,11 +388,11 @@ def build_database_table(state: Dict[str, Any]) -> Table:
         title="Databases",
         box=box.SIMPLE,
         expand=True,
-        border_style=ACCENT_GREEN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_GREEN,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_GREEN}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_GREEN}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Name")
     table.add_column("Role")
@@ -414,11 +416,11 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
         title="Feedback & Surveys",
         box=box.SIMPLE,
         expand=True,
-        border_style=ACCENT_CYAN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_CYAN,
+        style=f"on {COLOR_BG_GLASS}",
         header_style="bold white",
-        title_style=f"bold {ACCENT_CYAN}",
-        row_styles=[f"on {GLASS_BACKGROUND}", f"dim on {GLASS_BACKGROUND}"],
+        title_style=f"bold {COLOR_ACCENT_CYAN}",
+        row_styles=[f"on {COLOR_BG_GLASS}", f"dim on {COLOR_BG_GLASS}"],
     )
     table.add_column("Name")
     table.add_column("Question")
@@ -454,8 +456,8 @@ def build_analytics_panel(state: Dict[str, Any]) -> Panel:
         body,
         title="Analytics & A/B Tests",
         box=box.ROUNDED,
-        border_style=ACCENT_PURPLE,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_PURPLE,
+        style=f"on {COLOR_BG_GLASS}",
         title_align="left",
         padding=(1, 2),
     )
@@ -468,8 +470,8 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
             "You're all set for today.",
             title="Today's Focus",
             box=box.ROUNDED,
-            border_style=ACCENT_GREEN,
-            style=f"on {GLASS_BACKGROUND}",
+            border_style=COLOR_ACCENT_GREEN,
+            style=f"on {COLOR_BG_GLASS}",
             padding=(1, 2),
         )
     lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
@@ -477,8 +479,8 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
         "\n".join(lines),
         title="Today's Focus",
         box=box.ROUNDED,
-        border_style=ACCENT_GREEN,
-        style=f"on {GLASS_BACKGROUND}",
+        border_style=COLOR_ACCENT_GREEN,
+        style=f"on {COLOR_BG_GLASS}",
         padding=(1, 2),
     )
 
@@ -501,17 +503,17 @@ def render_dashboard(state: Dict[str, Any], console: Console) -> None:
         justify="center",
     )
     subtitle = Text(
-        f"{state.get('profile', {}).get('owner', 'Owner')}  •  Updated {datetime.now().strftime('%b %d, %Y %H:%M')}",
-        style="muted",
+        f"{state.get('profile', {}).get('owner', 'Owner')}  •  Updated {datetime.now().strftime(DATETIME_HEADER_FMT)}",
+        style=STYLE_MUTED,
     )
     layout["header"].update(
         Panel(
             Align.center(header_text),
             subtitle_align="right",
             subtitle=subtitle,
-            border_style=ACCENT_CYAN,
+            border_style=COLOR_ACCENT_CYAN,
             box=box.ROUNDED,
-            style=f"on {GLASS_BACKGROUND}",
+            style=f"on {COLOR_BG_GLASS}",
             padding=(0, 2),
         )
     )
@@ -637,7 +639,7 @@ def main() -> None:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
 
-    console = Console(record=args.snapshot, theme=DASHBOARD_THEME, style="muted", color_system="truecolor")
+    console = Console(record=args.snapshot, theme=DASHBOARD_THEME, style=STYLE_MUTED, color_system="truecolor")
 
     if should_render_dashboard(args):
         render_dashboard(state, console)
