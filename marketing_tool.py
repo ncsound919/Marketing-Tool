@@ -10,9 +10,10 @@ from typing import Any, Dict, List
 
 from rich import box
 from rich.align import Align
-from rich.console import Console
+from rich.console import Console, Group
 from rich.layout import Layout
 from rich.panel import Panel
+from rich.progress import Progress
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
@@ -61,16 +62,19 @@ def sample_state() -> Dict[str, Any]:
                 "name": "New Leads",
                 "criteria": ["Created < 30 days", "Matches ICP industries"],
                 "size": 34,
+                "nurtured": 23,
             },
             {
                 "name": "Active Customers",
                 "criteria": ["Touched product in last 14 days"],
                 "size": 18,
+                "nurtured": 15,
             },
             {
                 "name": "Dormant Accounts",
                 "criteria": ["No activity > 30 days"],
                 "size": 12,
+                "nurtured": 5,
             },
         ],
         "campaigns": [
@@ -122,6 +126,26 @@ def sample_state() -> Dict[str, Any]:
                 "last_updated": _today_iso(),
             },
         ],
+        "quick_templates": [
+            {"name": "Demo Follow-up", "copy": "Thanks for the demo! Here's what we discussed...", "purpose": "Post-demo nurture"},
+            {"name": "Quarterly Business Review", "copy": "Let's review your progress this quarter...", "purpose": "Customer success"},
+            {"name": "Feature Announcement", "copy": "We've just launched a new feature...", "purpose": "Product updates"},
+            {"name": "Case Study Request", "copy": "Your success story would inspire others...", "purpose": "Social proof"},
+            {"name": "Renewal Reminder", "copy": "Your subscription renews soon...", "purpose": "Retention"},
+            {"name": "Webinar Invitation", "copy": "Join us for an exclusive webinar...", "purpose": "Education"},
+            {"name": "Free Trial Ending", "copy": "Your trial ends in 3 days...", "purpose": "Conversion"},
+            {"name": "Welcome to Beta", "copy": "You're in! Here's how to get started...", "purpose": "Beta onboarding"},
+            {"name": "Referral Request", "copy": "Know someone who'd benefit?", "purpose": "Growth"},
+            {"name": "Survey Request", "copy": "Help us improve with 2 quick questions...", "purpose": "Feedback"},
+            {"name": "Holiday Greeting", "copy": "Happy holidays from our team...", "purpose": "Relationship building"},
+            {"name": "Product Update Digest", "copy": "Here's what's new this month...", "purpose": "Engagement"},
+        ],
+        "benchmarks": {
+            "open_rate": 0.28,
+            "click_rate": 0.15,
+            "reply_rate": 0.10,
+            "industry": "B2B SaaS"
+        },
         "integrations": [
             {"name": "CRM (HubSpot)", "status": "connected", "detail": "API token valid"},
             {"name": "Email (SendGrid)", "status": "connected", "detail": "Sender verified"},
@@ -301,11 +325,20 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
     table.add_column("Name")
     table.add_column("Criteria")
     table.add_column("Size", justify="right")
+    table.add_column("Progress", justify="right")
     for segment in state.get("segments", []):
+        size = segment.get("size", 0)
+        nurtured = segment.get("nurtured", 0)
+        if size > 0:
+            pct = (nurtured / size) * 100
+            progress_text = f"{pct:.0f}% nurtured"
+        else:
+            progress_text = "—"
         table.add_row(
             segment.get("name", "—"),
             "\n".join(f"• {c}" for c in segment.get("criteria", [])),
-            str(segment.get("size", "—")),
+            str(size),
+            progress_text,
         )
     return table
 
@@ -448,12 +481,42 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
 
 def build_analytics_panel(state: Dict[str, Any]) -> Panel:
     analytics = state.get("analytics", {})
-    lines = [
-        f"Open rate: {format_pct(analytics.get('open_rate', 0))}",
-        f"Click rate: {format_pct(analytics.get('click_rate', 0))}",
-        f"Reply rate: {format_pct(analytics.get('reply_rate', 0))}",
-        f"Conversions this week: {analytics.get('conversions', 0)}",
-    ]
+    benchmarks = state.get("benchmarks", {})
+    
+    lines = []
+    
+    # Display metrics with benchmark comparisons
+    open_rate = analytics.get('open_rate', 0)
+    click_rate = analytics.get('click_rate', 0)
+    reply_rate = analytics.get('reply_rate', 0)
+    
+    benchmark_open = benchmarks.get('open_rate', 0)
+    benchmark_click = benchmarks.get('click_rate', 0)
+    benchmark_reply = benchmarks.get('reply_rate', 0)
+    
+    if benchmark_open > 0:
+        open_diff = ((open_rate - benchmark_open) / benchmark_open) * 100
+        open_indicator = f" ({open_diff:+.0f}% vs avg)" if open_diff != 0 else ""
+        lines.append(f"Open rate: {format_pct(open_rate)}{open_indicator}")
+    else:
+        lines.append(f"Open rate: {format_pct(open_rate)}")
+    
+    if benchmark_click > 0:
+        click_diff = ((click_rate - benchmark_click) / benchmark_click) * 100
+        click_indicator = f" ({click_diff:+.0f}% vs avg)" if click_diff != 0 else ""
+        lines.append(f"Click rate: {format_pct(click_rate)}{click_indicator}")
+    else:
+        lines.append(f"Click rate: {format_pct(click_rate)}")
+    
+    if benchmark_reply > 0:
+        reply_diff = ((reply_rate - benchmark_reply) / benchmark_reply) * 100
+        reply_indicator = f" ({reply_diff:+.0f}% vs avg)" if reply_diff != 0 else ""
+        lines.append(f"Reply rate: {format_pct(reply_rate)}{reply_indicator}")
+    else:
+        lines.append(f"Reply rate: {format_pct(reply_rate)}")
+    
+    lines.append(f"Conversions this week: {analytics.get('conversions', 0)}")
+    
     ab_tests = analytics.get("ab_tests", [])
     if ab_tests:
         lines.append("A/B tests:")
@@ -484,9 +547,40 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
             style=BACKGROUND_STYLE,
             padding=(1, 2),
         )
-    lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
+    
+    # Sort actions by due date
+    today = datetime.now().date()
+    tomorrow = today + timedelta(days=1)
+    
+    def parse_date(date_str: str) -> datetime.date | None:
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return None
+    
+    sorted_actions = sorted(actions, key=lambda x: parse_date(x.get('due', '')) or datetime.max.date())
+    
+    lines = []
+    for item in sorted_actions:
+        title = item.get('title', 'Untitled')
+        due_str = item.get('due', '—')
+        due_date = parse_date(due_str)
+        
+        # Color code based on due date
+        if due_date == today:
+            color = "red"
+            priority = "🔴 "
+        elif due_date == tomorrow:
+            color = "yellow"
+            priority = "🟡 "
+        else:
+            color = "white"
+            priority = ""
+        
+        lines.append(Text(f"{priority}• {title} (due {due_str})", style=color))
+    
     return Panel(
-        "\n".join(lines),
+        Group(*lines),
         title="Today's Focus",
         box=box.ROUNDED,
         border_style=COLOR_ACCENT_AMBER,
@@ -495,11 +589,118 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
     )
 
 
+def build_quick_actions_menu() -> Text:
+    """Build a compact quick actions menu."""
+    actions_text = Text()
+    actions_text.append("Quick Actions: ", style="bold cyan")
+    actions_text.append("[1] New Campaign  ", style="cyan")
+    actions_text.append("[2] Export Report  ", style="cyan")
+    actions_text.append("[3] Sync All  ", style="cyan")
+    actions_text.append("[4] Reset Data  ", style="cyan")
+    actions_text.append("[5] View Templates  ", style="cyan")
+    actions_text.append("[6] Export Cards", style="cyan")
+    return actions_text
+
+
+def export_status_cards(state: Dict[str, Any], base_path: Path) -> None:
+    """Export individual SVG panels for campaigns, analytics, etc."""
+    base_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    profile = state.get("profile", {})
+    business_name = profile.get("business_name", "B2B Dashboard")
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    # Export Campaigns card
+    console_campaigns = themed_console(record=True)
+    console_campaigns.print(build_campaign_table(state))
+    card_path = base_path.parent / f"card_campaigns_{timestamp}.svg"
+    console_campaigns.save_svg(str(card_path), title=f"{business_name} - Campaigns")
+    
+    # Export Analytics card
+    console_analytics = themed_console(record=True)
+    console_analytics.print(build_analytics_panel(state))
+    card_path = base_path.parent / f"card_analytics_{timestamp}.svg"
+    console_analytics.save_svg(str(card_path), title=f"{business_name} - Analytics")
+    
+    # Export Segments card
+    console_segments = themed_console(record=True)
+    console_segments.print(build_segment_table(state))
+    card_path = base_path.parent / f"card_segments_{timestamp}.svg"
+    console_segments.save_svg(str(card_path), title=f"{business_name} - Segments")
+    
+    # Export Actions card
+    console_actions = themed_console(record=True)
+    console_actions.print(build_actions_panel(state))
+    card_path = base_path.parent / f"card_actions_{timestamp}.svg"
+    console_actions.save_svg(str(card_path), title=f"{business_name} - Today's Focus")
+    
+    status_console = themed_console()
+    status_console.print(f"[green]✓[/green] Exported 4 status cards to {base_path.parent}/")
+
+
+def render_brief_mode(state: Dict[str, Any], console: Console) -> None:
+    """Render a compact morning brief with Today's Focus and top 3 metrics."""
+    profile = state.get("profile", {})
+    business_name = profile.get("business_name", "B2B Dashboard")
+    
+    # Create a simple layout
+    console.print()
+    console.print(f"[bold cyan]✦ {business_name} - Morning Brief[/bold cyan]", justify="center")
+    console.print(f"[dim]{datetime.now().strftime('%B %d, %Y %H:%M')}[/dim]", justify="center")
+    console.print()
+    
+    # Today's Focus
+    actions = state.get("actions", [])
+    console.print("[bold yellow]Today's Focus:[/bold yellow]")
+    if actions:
+        today = datetime.now().date()
+        for item in actions[:3]:  # Show top 3
+            title = item.get('title', 'Untitled')
+            due_str = item.get('due', '—')
+            try:
+                due_date = datetime.strptime(due_str, "%Y-%m-%d").date()
+                if due_date == today:
+                    console.print(f"  🔴 {title}")
+                else:
+                    console.print(f"  • {title}")
+            except (ValueError, TypeError):
+                console.print(f"  • {title}")
+    else:
+        console.print("  ✓ You're all set for today!")
+    console.print()
+    
+    # Top 3 Metrics
+    analytics = state.get("analytics", {})
+    benchmarks = state.get("benchmarks", {})
+    console.print("[bold green]Top Metrics:[/bold green]")
+    
+    open_rate = analytics.get('open_rate', 0)
+    benchmark_open = benchmarks.get('open_rate', 0)
+    if benchmark_open > 0:
+        open_diff = ((open_rate - benchmark_open) / benchmark_open) * 100
+        console.print(f"  📧 Open rate: {format_pct(open_rate)} ({open_diff:+.0f}% vs avg)")
+    else:
+        console.print(f"  📧 Open rate: {format_pct(open_rate)}")
+    
+    click_rate = analytics.get('click_rate', 0)
+    benchmark_click = benchmarks.get('click_rate', 0)
+    if benchmark_click > 0:
+        click_diff = ((click_rate - benchmark_click) / benchmark_click) * 100
+        console.print(f"  👆 Click rate: {format_pct(click_rate)} ({click_diff:+.0f}% vs avg)")
+    else:
+        console.print(f"  👆 Click rate: {format_pct(click_rate)}")
+    
+    conversions = analytics.get('conversions', 0)
+    console.print(f"  🎯 Conversions this week: {conversions}")
+    console.print()
+
+
 def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | None = None) -> None:
     now = now or datetime.now()
     layout = Layout()
     layout.split_column(
         Layout(name="header", size=3),
+        Layout(name="quick_actions", size=1),
         Layout(name="body", ratio=1),
         Layout(name="footer", size=6),
     )
@@ -526,6 +727,9 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
             padding=(0, 2),
         )
     )
+    
+    # Add quick actions menu
+    layout["quick_actions"].update(Align.center(build_quick_actions_menu()))
 
     layout["campaigns"].update(build_campaign_table(state))
     layout["segments"].update(build_segment_table(state))
@@ -602,6 +806,8 @@ def parse_args() -> argparse.Namespace:
         dest="next_send",
         help="Next send date (YYYY-MM-DD). Defaults to today.",
     )
+    parser.add_argument("--brief", action="store_true", help="Morning brief view - Today's Focus + top 3 metrics.")
+    parser.add_argument("--export-cards", action="store_true", help="Export individual SVG panels for Slack/Teams.")
     return parser.parse_args()
 
 
@@ -631,6 +837,9 @@ def validate_next_send(next_send: str | None) -> str | None:
 def should_render_dashboard(args: argparse.Namespace) -> bool:
     if args.summary or args.snapshot:
         return True
+    # Don't render full dashboard for brief mode or export-cards
+    if args.brief or args.export_cards:
+        return False
     # Default to rendering the dashboard when no mutating actions are requested.
     return not any([args.add_campaign, args.reset_sample])
 
@@ -648,6 +857,17 @@ def main() -> None:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
 
+    # Handle brief mode
+    if args.brief:
+        console = themed_console()
+        render_brief_mode(state, console)
+        return
+
+    # Handle export-cards mode
+    if args.export_cards:
+        export_status_cards(state, args.snapshot_path)
+        return
+
     console = themed_console(record=args.snapshot)
 
     render_time = datetime.now()
@@ -657,7 +877,13 @@ def main() -> None:
 
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-        console.save_svg(str(args.snapshot_path), title="B2B Engagement Dashboard")
+        
+        # Add branded watermark
+        profile = state.get("profile", {})
+        business_name = profile.get("business_name", "B2B Dashboard")
+        watermark = f"Generated by {business_name} Marketing Tool • {datetime.now().strftime('%Y-%m-%d')}"
+        
+        console.save_svg(str(args.snapshot_path), title=watermark)
         status_console = themed_console()
         status_console.print(f"Saved snapshot to {args.snapshot_path}")
 
