@@ -208,6 +208,49 @@ def sample_state() -> Dict[str, Any]:
             {"title": "Send nurture to Dormant Accounts", "due": tomorrow.isoformat(), "owner": "You"},
             {"title": "Sync CRM deal stages", "due": tomorrow.isoformat(), "owner": "You"},
         ],
+        "strategies": [
+            {
+                "name": "ABM",
+                "full_name": "Account-Based Marketing",
+                "description": "Target high-value accounts with personalized campaigns",
+                "steps": ["Identify target accounts", "Personalize content", "Multi-channel outreach", "Measure engagement"],
+                "channels": ["Email", "LinkedIn", "Call"],
+                "best_for_segments": ["New Leads", "Active Customers"],
+            },
+            {
+                "name": "AIDA",
+                "full_name": "Attention-Interest-Desire-Action",
+                "description": "Classic content funnel framework",
+                "steps": ["Grab attention", "Build interest", "Create desire", "Drive action"],
+                "channels": ["Email", "Social", "Ads"],
+                "best_for_segments": ["All"],
+            },
+            {
+                "name": "RACE",
+                "full_name": "Reach-Act-Convert-Engage",
+                "description": "Omnichannel planning framework",
+                "steps": ["Reach new audience", "Act/Interact", "Convert to leads", "Engage long-term"],
+                "channels": ["Social", "Email", "Website"],
+                "best_for_segments": ["New Leads", "Dormant Accounts"],
+            },
+            {
+                "name": "7Ps",
+                "full_name": "7Ps Marketing Mix",
+                "description": "Holistic B2B planning framework",
+                "steps": ["Product", "Price", "Place", "Promotion", "People", "Process", "Physical Evidence"],
+                "channels": ["All"],
+                "best_for_segments": ["Active Customers"],
+            },
+        ],
+        "videos": [
+            {
+                "template": "Product Tour Deck",
+                "output_path": "data/videos/product_tour.mp4",
+                "duration": 45,
+                "status": "ready",
+                "generated": "2025-12-20",
+            },
+        ],
     }
 
 
@@ -331,6 +374,65 @@ def build_template_table(state: Dict[str, Any]) -> Table:
             template.get("medium", "—"),
             template.get("purpose", "—"),
             template.get("last_updated", "—"),
+        )
+    return table
+
+
+def build_strategies_table(state: Dict[str, Any]) -> Table:
+    table = Table(
+        title="Strategies",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=True,
+        border_style=COLOR_ACCENT_GREEN,
+        style=BACKGROUND_STYLE,
+        header_style="bold white",
+        title_style=f"bold {COLOR_ACCENT_GREEN}",
+        row_styles=GLASS_ROW_STYLES,
+    )
+    table.add_column("Strategy")
+    table.add_column("Description")
+    table.add_column("Best Segments")
+    table.add_column("Status")
+    for strategy in state.get("strategies", []):
+        # Status is always "available" for strategies
+        status = Text("Available", style="green")
+        best_segments = ", ".join(strategy.get("best_for_segments", []))
+        table.add_row(
+            strategy.get("full_name", strategy.get("name", "—")),
+            strategy.get("description", "—"),
+            best_segments,
+            status,
+        )
+    return table
+
+
+def build_videos_table(state: Dict[str, Any]) -> Table:
+    table = Table(
+        title="Videos",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=True,
+        border_style=COLOR_ACCENT_AMBER,
+        style=BACKGROUND_STYLE,
+        header_style="bold white",
+        title_style=f"bold {COLOR_ACCENT_AMBER}",
+        row_styles=GLASS_ROW_STYLES,
+    )
+    table.add_column("Template")
+    table.add_column("Duration")
+    table.add_column("Status")
+    table.add_column("Generated")
+    table.add_column("Path")
+    for video in state.get("videos", []):
+        status_value = video.get("status", "unknown")
+        status = Text(status_value.title(), style=_status_color(status_value))
+        duration = video.get("duration", "—")
+        duration_str = f"{duration}s" if isinstance(duration, int) else str(duration)
+        table.add_row(
+            video.get("template", "—"),
+            duration_str,
+            status,
+            video.get("generated", "—"),
+            video.get("output_path", "—"),
         )
     return table
 
@@ -505,7 +607,11 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     )
     layout["body"].split_row(Layout(name="left"), Layout(name="right"))
     layout["left"].split_column(Layout(name="campaigns"), Layout(name="segments"))
-    layout["right"].split_column(Layout(name="templates"), Layout(name="analytics"))
+    layout["right"].split_column(
+        Layout(name="templates"),
+        Layout(name="videos"),
+        Layout(name="strategies_analytics"),
+    )
 
     profile = state.get("profile", {})
     business_name = profile.get("business_name", "B2B Dashboard")
@@ -530,6 +636,14 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     layout["campaigns"].update(build_campaign_table(state))
     layout["segments"].update(build_segment_table(state))
     layout["templates"].update(build_template_table(state))
+    layout["videos"].update(build_videos_table(state))
+    
+    # Split strategies and analytics horizontally
+    layout["strategies_analytics"].split_row(
+        Layout(name="strategies"),
+        Layout(name="analytics"),
+    )
+    layout["strategies"].update(build_strategies_table(state))
     layout["analytics"].update(build_analytics_panel(state))
 
     footer_layout = Layout()
@@ -554,6 +668,115 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     layout["footer"].update(footer_layout)
 
     console.print(layout)
+
+
+def apply_strategy_to_segment(args: argparse.Namespace, state: Dict[str, Any]) -> None:
+    """Auto-generate campaigns/actions from selected strategy for a segment."""
+    strategy_name = args.select_strategy
+    segment_name = args.segment
+    
+    # Find the strategy
+    strategies = state.get("strategies", [])
+    strategy = None
+    for s in strategies:
+        if s.get("name") == strategy_name or s.get("full_name") == strategy_name:
+            strategy = s
+            break
+    
+    if not strategy:
+        raise SystemExit(f"Strategy '{strategy_name}' not found. Available: {', '.join(s.get('name', '') for s in strategies)}")
+    
+    # Verify segment exists
+    segments = state.get("segments", [])
+    segment_exists = any(seg.get("name") == segment_name for seg in segments)
+    if not segment_exists:
+        raise SystemExit(f"Segment '{segment_name}' not found. Available: {', '.join(seg.get('name', '') for seg in segments)}")
+    
+    # Generate campaigns based on strategy steps
+    campaigns: List[Dict[str, Any]] = state.setdefault("campaigns", [])
+    channels = strategy.get("channels", ["Email"])
+    steps = strategy.get("steps", [])
+    
+    tomorrow = (datetime.now().date() + timedelta(days=1)).isoformat()
+    
+    # Create a campaign for the first step of the strategy
+    if steps and channels:
+        campaign_name = f"{strategy.get('name', 'Strategy')}: {steps[0]}"
+        channel = channels[0] if channels[0] != "All" else "Email"
+        
+        campaigns.append({
+            "name": campaign_name,
+            "segment": segment_name,
+            "trigger": f"Strategy: {strategy.get('name', '')}",
+            "channel": channel,
+            "template": f"{strategy.get('name', '')} Template",
+            "status": "ready",
+            "next_send": tomorrow,
+        })
+    
+    save_state(state)
+    console = themed_console()
+    console.print(f"[green]✓[/green] Applied strategy '{strategy.get('full_name', strategy_name)}' to segment '{segment_name}'")
+    console.print(f"  Generated {1} campaign(s)")
+
+
+def generate_marketing_video(args: argparse.Namespace, state: Dict[str, Any]) -> None:
+    """Generate video from template using MoviePy."""
+    template_name = args.template
+    output_path = args.output
+    
+    # Verify template exists
+    templates = state.get("templates", [])
+    template = None
+    for t in templates:
+        if t.get("name") == template_name:
+            template = t
+            break
+    
+    if not template:
+        raise SystemExit(f"Template '{template_name}' not found. Available: {', '.join(t.get('name', '') for t in templates)}")
+    
+    # Create output directory
+    output_file = Path(output_path)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Simple video generation using MoviePy
+    try:
+        from moviepy.editor import TextClip, CompositeVideoClip
+        
+        # Create a simple text-based video
+        duration = 10  # 10 seconds default
+        txt_clip = TextClip(
+            f"{template_name}\n\nGenerated by Marketing Tool",
+            fontsize=50,
+            color='white',
+            bg_color='black',
+            size=(1280, 720),
+            method='caption',
+        )
+        txt_clip = txt_clip.set_duration(duration)
+        
+        video = CompositeVideoClip([txt_clip])
+        video.write_videofile(str(output_file), fps=24, codec='libx264', audio=False, logger=None)
+        
+        # Add to state
+        videos: List[Dict[str, Any]] = state.setdefault("videos", [])
+        videos.append({
+            "template": template_name,
+            "output_path": str(output_path),
+            "duration": duration,
+            "status": "ready",
+            "generated": _today_iso(),
+        })
+        
+        save_state(state)
+        console = themed_console()
+        console.print(f"[green]✓[/green] Generated video from template '{template_name}' to '{output_path}'")
+        
+    except ImportError:
+        raise SystemExit("MoviePy not installed. Install with: pip install moviepy")
+    except Exception as e:
+        raise SystemExit(f"Failed to generate video: {e}")
 
 
 def add_campaign(args: argparse.Namespace, state: Dict[str, Any]) -> None:
@@ -602,6 +825,19 @@ def parse_args() -> argparse.Namespace:
         dest="next_send",
         help="Next send date (YYYY-MM-DD). Defaults to today.",
     )
+    parser.add_argument(
+        "--select-strategy",
+        help="Apply marketing strategy to segment (requires --segment).",
+    )
+    parser.add_argument(
+        "--generate-video",
+        action="store_true",
+        help="Generate video from template (requires --template and --output).",
+    )
+    parser.add_argument(
+        "--output",
+        help="Output path for generated video.",
+    )
     return parser.parse_args()
 
 
@@ -632,7 +868,7 @@ def should_render_dashboard(args: argparse.Namespace) -> bool:
     if args.summary or args.snapshot:
         return True
     # Default to rendering the dashboard when no mutating actions are requested.
-    return not any([args.add_campaign, args.reset_sample])
+    return not any([args.add_campaign, args.reset_sample, args.select_strategy, args.generate_video])
 
 
 def main() -> None:
@@ -647,6 +883,16 @@ def main() -> None:
     if args.add_campaign:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
+    
+    if args.select_strategy:
+        if not args.segment:
+            raise SystemExit("--select-strategy requires --segment to be specified")
+        apply_strategy_to_segment(args, state)
+    
+    if args.generate_video:
+        if not args.template or not args.output:
+            raise SystemExit("--generate-video requires both --template and --output to be specified")
+        generate_marketing_video(args, state)
 
     console = themed_console(record=args.snapshot)
 
