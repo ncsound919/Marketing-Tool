@@ -11,9 +11,13 @@ Desktop-style command center for enhancing B2B customer engagement through autom
 - **Segmentation**: track key customer groups and their criteria.
 - **Connectors & integrations**: quick view of CRM, email, and social connection health plus sync status.
 - **Operational health**: backend services and databases with latency, errors, and storage snapshots.
-- **Analytics & A/B**: monitor open/click/reply rates and experiment winners.
+- **Analytics & A/B**: monitor open/click/reply rates and experiment winners with benchmark comparisons vs. industry averages.
 - **Feedback tools**: surveys/questions you routinely send after demos or onboarding.
-- **Morning focus list**: the top few actions to move engagement forward.
+- **Morning focus list**: the top few actions to move engagement forward, color-coded by priority (red for today, yellow for tomorrow).
+- **Quick Actions Menu**: 6 one-click shortcuts at the dashboard top for common tasks.
+- **Morning Brief Mode**: Compact view showing Today's Focus and top 3 metrics for daily standups.
+- **Shareable Status Cards**: Export individual SVG panels for Slack/Teams sharing.
+- **Branded Watermarks**: Auto-added business name and date to all SVG exports for professional sharing.
 
 ## Quick start
 
@@ -40,7 +44,18 @@ python marketing_tool.py --add-campaign \
    ```bash
    python marketing_tool.py --snapshot
    ```
-   The snapshot is saved to `docs/dashboard_snapshot.svg`.
+   The snapshot is saved to `docs/dashboard_snapshot.svg` with your business name as a watermark.
+
+5. Get a quick morning brief with today's focus and top 3 metrics:
+   ```bash
+   python marketing_tool.py --brief
+   ```
+
+6. Export individual status cards for sharing in Slack/Teams:
+   ```bash
+   python marketing_tool.py --export-cards
+   ```
+   Cards are saved to `docs/card_*.svg` with timestamps.
 
 If you want to restore the original sample data at any time:
 ```bash

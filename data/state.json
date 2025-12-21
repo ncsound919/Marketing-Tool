@@ -10,21 +10,24 @@
         "Created < 30 days",
         "Matches ICP industries"
       ],
-      "size": 34
+      "size": 34,
+      "nurtured": 23
     },
     {
       "name": "Active Customers",
       "criteria": [
         "Touched product in last 14 days"
       ],
-      "size": 18
+      "size": 18,
+      "nurtured": 15
     },
     {
       "name": "Dormant Accounts",
       "criteria": [
         "No activity > 30 days"
       ],
-      "size": 12
+      "size": 12,
+      "nurtured": 5
     }
   ],
   "campaigns": [
@@ -94,6 +97,74 @@
       "last_updated": "2025-12-21"
     }
   ],
+  "quick_templates": [
+    {
+      "name": "Demo Follow-up",
+      "copy": "Thanks for the demo! Here's what we discussed...",
+      "purpose": "Post-demo nurture"
+    },
+    {
+      "name": "Quarterly Business Review",
+      "copy": "Let's review your progress this quarter...",
+      "purpose": "Customer success"
+    },
+    {
+      "name": "Feature Announcement",
+      "copy": "We've just launched a new feature...",
+      "purpose": "Product updates"
+    },
+    {
+      "name": "Case Study Request",
+      "copy": "Your success story would inspire others...",
+      "purpose": "Social proof"
+    },
+    {
+      "name": "Renewal Reminder",
+      "copy": "Your subscription renews soon...",
+      "purpose": "Retention"
+    },
+    {
+      "name": "Webinar Invitation",
+      "copy": "Join us for an exclusive webinar...",
+      "purpose": "Education"
+    },
+    {
+      "name": "Free Trial Ending",
+      "copy": "Your trial ends in 3 days...",
+      "purpose": "Conversion"
+    },
+    {
+      "name": "Welcome to Beta",
+      "copy": "You're in! Here's how to get started...",
+      "purpose": "Beta onboarding"
+    },
+    {
+      "name": "Referral Request",
+      "copy": "Know someone who'd benefit?",
+      "purpose": "Growth"
+    },
+    {
+      "name": "Survey Request",
+      "copy": "Help us improve with 2 quick questions...",
+      "purpose": "Feedback"
+    },
+    {
+      "name": "Holiday Greeting",
+      "copy": "Happy holidays from our team...",
+      "purpose": "Relationship building"
+    },
+    {
+      "name": "Product Update Digest",
+      "copy": "Here's what's new this month...",
+      "purpose": "Engagement"
+    }
+  ],
+  "benchmarks": {
+    "open_rate": 0.28,
+    "click_rate": 0.15,
+    "reply_rate": 0.1,
+    "industry": "B2B SaaS"
+  },
   "integrations": [
     {
       "name": "CRM (HubSpot)",
