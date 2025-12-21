@@ -29,7 +29,17 @@ Desktop-style command center for enhancing B2B customer engagement through autom
    ```bash
    python marketing_tool.py --summary
    ```
-3. Add a new automation/campaign targeting a segment:
+3. **NEW: Use Creative Mode for easy campaign creation:**
+   ```bash
+   python marketing_tool.py --creative-mode
+   ```
+   Creative Mode provides an intuitive interface where you simply describe your campaign idea (e.g., "demo video for SMB CTOs") and the system automatically:
+   - Matches your idea to predefined automation rules
+   - Configures segments, channels, and cadence
+   - Sets up A/B testing variants
+   - Provides a split-screen studio for content editing (70%) and automation status (30%)
+
+4. Add a new automation/campaign targeting a segment:
    ```bash
 python marketing_tool.py --add-campaign \
   --name "Partner nurture" \
@@ -40,7 +50,7 @@ python marketing_tool.py --add-campaign \
   --next-send 2025-01-15  # example date; adjust as needed
 ```
    Optional: set an initial status with `--status ready|running|paused` (defaults to `scheduled`).
-4. Export a snapshot of the dashboard (SVG) to share or pin for your morning routine:
+5. Export a snapshot of the dashboard (SVG) to share or pin for your morning routine:
    ```bash
    python marketing_tool.py --snapshot
    ```
