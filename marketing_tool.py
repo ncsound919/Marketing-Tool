@@ -702,7 +702,15 @@ def apply_strategy_to_segment(args: argparse.Namespace, state: Dict[str, Any]) -
     # Create a campaign for the first step of the strategy
     if steps and channels:
         campaign_name = f"{strategy.get('name', 'Strategy')}: {steps[0]}"
-        channel = channels[0] if channels[0] != "All" else "Email"
+        # Select a concrete channel from the strategy context:
+        # - Prefer the first channel that is not the special "All" marker.
+        # - If all channels are "All" (e.g., ["All"]), keep "All" to indicate omnichannel.
+        # - If channels is unexpectedly empty, fall back to "Email".
+        non_all_channels = [ch for ch in channels if ch != "All"]
+        if non_all_channels:
+            channel = non_all_channels[0]
+        else:
+            channel = channels[0] if channels else "Email"
         
         campaigns.append({
             "name": campaign_name,
