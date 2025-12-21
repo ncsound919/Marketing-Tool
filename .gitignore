@@ -22,8 +22,8 @@ wheels/
 
 # Virtual environments
 venv/
-ENV/
 env/
+ENV/
 .venv
 
 # IDE
@@ -33,9 +33,7 @@ env/
 *.swo
 *~
 
-# Generated cards (timestamped SVG exports)
-docs/card_*_*.svg
-
-# OS
-.DS_Store
-Thumbs.db
+# Videos (generated content)
+data/videos/*.mp4
+data/videos/*.avi
+data/videos/*.mov
