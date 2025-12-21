@@ -13,6 +13,7 @@ from rich.align import Align
 from rich.console import Console
 from rich.layout import Layout
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
@@ -208,6 +209,11 @@ def sample_state() -> Dict[str, Any]:
             {"title": "Send nurture to Dormant Accounts", "due": tomorrow.isoformat(), "owner": "You"},
             {"title": "Sync CRM deal stages", "due": tomorrow.isoformat(), "owner": "You"},
         ],
+        "automation_rules": {
+            "SMB_CTO": {"segment": "Tech Leads", "cadence": "0-3-7", "channel": "Email+LinkedIn"},
+            "Enterprise": {"segment": "VP Sales", "cadence": "0-5-14-30", "ab_tests": 3},
+            "Demo_video": {"variants": 2, "length": 90, "format": "MP4 vertical"},
+        },
     }
 
 
@@ -556,6 +562,185 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     console.print(layout)
 
 
+def generate_auto_plan(creative_idea: str) -> Dict[str, Any]:
+    """
+    Match user's creative idea to automation rules and generate a plan.
+    Uses simple keyword matching to determine which rule to apply.
+    """
+    idea_lower = creative_idea.lower()
+    
+    # Define keyword patterns for each rule
+    rule_patterns = {
+        "SMB_CTO": ["smb", "cto", "tech lead", "technical", "small business", "medium business"],
+        "Enterprise": ["enterprise", "vp", "sales", "large", "corporation"],
+        "Demo_video": ["demo", "video", "presentation", "recording", "mp4"],
+    }
+    
+    # Find the best matching rule
+    matched_rule = None
+    for rule_name, keywords in rule_patterns.items():
+        if any(keyword in idea_lower for keyword in keywords):
+            matched_rule = rule_name
+            break
+    
+    # Default plan if no match found
+    default_plan = {
+        "rule_matched": "Default",
+        "segment": "General Audience",
+        "cadence": "0-7",
+        "channel": "Email",
+        "variants": 1,
+        "auto_handled": ["Segment selection", "Basic scheduling"],
+    }
+    
+    if not matched_rule:
+        return default_plan
+    
+    # Load the actual rules from sample state
+    state = sample_state()
+    rules = state.get("automation_rules", {})
+    rule_config = rules.get(matched_rule, {})
+    
+    # Build the auto plan
+    auto_plan = {
+        "rule_matched": matched_rule,
+        "segment": rule_config.get("segment", "General Audience"),
+        "cadence": rule_config.get("cadence", "0-7"),
+        "channel": rule_config.get("channel", "Email"),
+        "variants": rule_config.get("variants", 1),
+        "ab_tests": rule_config.get("ab_tests"),
+        "length": rule_config.get("length"),
+        "format": rule_config.get("format"),
+        "auto_handled": [],
+    }
+    
+    # Track what was auto-handled
+    if auto_plan.get("segment"):
+        auto_plan["auto_handled"].append(f"Segment: {auto_plan['segment']}")
+    if auto_plan.get("cadence"):
+        auto_plan["auto_handled"].append(f"Cadence: {auto_plan['cadence']} days")
+    if auto_plan.get("channel"):
+        auto_plan["auto_handled"].append(f"Channel: {auto_plan['channel']}")
+    if auto_plan.get("ab_tests"):
+        auto_plan["auto_handled"].append(f"A/B tests: {auto_plan['ab_tests']} variants")
+    if auto_plan.get("variants"):
+        auto_plan["auto_handled"].append(f"Creative variants: {auto_plan['variants']}")
+    if auto_plan.get("length"):
+        auto_plan["auto_handled"].append(f"Video length: {auto_plan['length']}s")
+    if auto_plan.get("format"):
+        auto_plan["auto_handled"].append(f"Format: {auto_plan['format']}")
+    
+    return auto_plan
+
+
+def render_creative_studio(creative_idea: str, auto_plan: Dict[str, Any], console: Console) -> None:
+    """
+    Render the Creative Studio UI with a 70/30 split layout.
+    Left (70%): Creation Studio for editing content
+    Right (30%): Auto-magic status showing what was handled automatically
+    """
+    layout = Layout()
+    layout.split_row(
+        Layout(name="studio", ratio=70),
+        Layout(name="automagic", ratio=30),
+    )
+    
+    # Build the Creation Studio panel (left side - 70%)
+    studio_content = []
+    studio_content.append(f"[bold {COLOR_ACCENT_CYAN}]Your Creative Idea:[/bold {COLOR_ACCENT_CYAN}]")
+    studio_content.append(f"  {creative_idea}")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Script (editable):[/bold {COLOR_ACCENT_GREEN}]")
+    studio_content.append("  → Opening hook: Grab attention in first 3 seconds")
+    studio_content.append("  → Problem statement: What pain point are we solving?")
+    studio_content.append("  → Solution demo: Show the product in action")
+    studio_content.append("  → Call to action: Book a demo / Start trial")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Thumbnails:[/bold {COLOR_ACCENT_PURPLE}]")
+    studio_content.append("  [Thumbnail A] Bold text with product screenshot")
+    studio_content.append("  [Thumbnail B] Face + emotion-driven design")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_AMBER}]Voiceover:[/bold {COLOR_ACCENT_AMBER}]")
+    studio_content.append("  Professional voice (auto-generated available)")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Actions:[/bold {COLOR_ACCENT_GREEN}]")
+    studio_content.append("  [Launch] Deploy campaign (segments, timing, syncs handled)")
+    studio_content.append("  [Preview] See how it looks across channels")
+    studio_content.append("  [Edit] Modify script, thumbnails, or voiceover")
+    
+    studio_panel = Panel(
+        "\n".join(studio_content),
+        title="Creation Studio",
+        box=box.ROUNDED,
+        border_style=COLOR_ACCENT_CYAN,
+        style=BACKGROUND_STYLE,
+        padding=(1, 2),
+    )
+    
+    # Build the Auto-magic Status panel (right side - 30%)
+    auto_content = []
+    auto_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Rule Matched:[/bold {COLOR_ACCENT_PURPLE}]")
+    auto_content.append(f"  {auto_plan.get('rule_matched', 'None')}")
+    auto_content.append("")
+    auto_content.append(f"[bold {COLOR_ACCENT_GREEN}]Auto-handled:[/bold {COLOR_ACCENT_GREEN}]")
+    
+    auto_handled = auto_plan.get("auto_handled", [])
+    if auto_handled:
+        for item in auto_handled:
+            auto_content.append(f"  ✓ {item}")
+    else:
+        auto_content.append("  (none)")
+    
+    auto_content.append("")
+    auto_content.append(f"[bold {COLOR_ACCENT_AMBER}]Status:[/bold {COLOR_ACCENT_AMBER}]")
+    auto_content.append("  ✓ Segments configured")
+    auto_content.append("  ✓ Scheduling ready")
+    auto_content.append("  ✓ Syncs prepared")
+    auto_content.append("  → Ready to launch!")
+    
+    auto_panel = Panel(
+        "\n".join(auto_content),
+        title="Auto-magic Status",
+        box=box.ROUNDED,
+        border_style=COLOR_ACCENT_AMBER,
+        style=BACKGROUND_STYLE,
+        padding=(1, 2),
+    )
+    
+    layout["studio"].update(studio_panel)
+    layout["automagic"].update(auto_panel)
+    
+    # Print header
+    header_text = Text(
+        "✦ Creative Mode • Easy Campaign Creation",
+        style="bold #e2e8f0",
+        justify="center",
+    )
+    header_panel = Panel(
+        Align.center(header_text),
+        border_style=COLOR_ACCENT_AMBER,
+        box=box.ROUNDED,
+        style=BACKGROUND_STYLE,
+        padding=(0, 2),
+    )
+    console.print(header_panel)
+    console.print()
+    console.print(layout)
+    console.print()
+    console.print(f"[dim]The system has handled the dirty work (segments, scheduling, syncs) automatically.[/dim]")
+    console.print(f"[{COLOR_ACCENT_GREEN}]Press Launch when ready to deploy your campaign![/{COLOR_ACCENT_GREEN}]")
+
+
+def creative_mode(console: Console) -> None:
+    """
+    Handle the creative mode workflow.
+    Prompts user for a creative idea, generates an auto plan, and renders the studio.
+    """
+    creative_idea = Prompt.ask("What's your creative idea?")
+    auto_plan = generate_auto_plan(creative_idea)
+    render_creative_studio(creative_idea, auto_plan, console)
+
+
 def add_campaign(args: argparse.Namespace, state: Dict[str, Any]) -> None:
     campaigns: List[Dict[str, Any]] = state.setdefault("campaigns", [])
     campaigns.append(
@@ -585,6 +770,7 @@ def parse_args() -> argparse.Namespace:
         help="Where to save the SVG snapshot.",
     )
     parser.add_argument("--reset-sample", action="store_true", help="Restore sample data.")
+    parser.add_argument("--creative-mode", action="store_true", help="Launch Creative Mode for easy campaign creation.")
     parser.add_argument("--add-campaign", action="store_true", help="Add a new automation.")
     parser.add_argument("--name", help="Campaign name when adding automation.")
     parser.add_argument("--segment", help="Target segment for automation.")
@@ -632,7 +818,7 @@ def should_render_dashboard(args: argparse.Namespace) -> bool:
     if args.summary or args.snapshot:
         return True
     # Default to rendering the dashboard when no mutating actions are requested.
-    return not any([args.add_campaign, args.reset_sample])
+    return not any([args.add_campaign, args.reset_sample, args.creative_mode])
 
 
 def main() -> None:
@@ -649,6 +835,10 @@ def main() -> None:
         add_campaign(args, state)
 
     console = themed_console(record=args.snapshot)
+
+    if args.creative_mode:
+        creative_mode(console)
+        return
 
     render_time = datetime.now()
 
