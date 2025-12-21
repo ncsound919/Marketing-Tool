@@ -565,8 +565,13 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
 def generate_auto_plan(creative_idea: str) -> Dict[str, Any]:
     """
     Match user's creative idea to automation rules and generate a plan.
-    Uses simple keyword matching to determine which rule to apply.
+    Uses keyword matching with scoring to determine which rule best applies.
+    The rule with the most keyword matches wins.
     """
+    if not creative_idea or not creative_idea.strip():
+        # Handle empty input gracefully
+        creative_idea = "General campaign"
+    
     idea_lower = creative_idea.lower()
     
     # Define keyword patterns for each rule
@@ -576,12 +581,20 @@ def generate_auto_plan(creative_idea: str) -> Dict[str, Any]:
         "Demo_video": ["demo", "video", "presentation", "recording", "mp4"],
     }
     
-    # Find the best matching rule
-    matched_rule = None
+    # Score each rule based on keyword matches
+    scores = {}
     for rule_name, keywords in rule_patterns.items():
-        if any(keyword in idea_lower for keyword in keywords):
-            matched_rule = rule_name
-            break
+        score = sum(1 for keyword in keywords if keyword in idea_lower)
+        if score > 0:
+            scores[rule_name] = score
+    
+    # Find the best matching rule (highest score wins, first alphabetically if tied)
+    matched_rule = None
+    if scores:
+        max_score = max(scores.values())
+        # Get all rules with max score and pick first alphabetically for determinism
+        best_rules = sorted([name for name, score in scores.items() if score == max_score])
+        matched_rule = best_rules[0]
     
     # Default plan if no match found
     default_plan = {
@@ -614,21 +627,22 @@ def generate_auto_plan(creative_idea: str) -> Dict[str, Any]:
         "auto_handled": [],
     }
     
-    # Track what was auto-handled
-    if auto_plan.get("segment"):
-        auto_plan["auto_handled"].append(f"Segment: {auto_plan['segment']}")
-    if auto_plan.get("cadence"):
-        auto_plan["auto_handled"].append(f"Cadence: {auto_plan['cadence']} days")
-    if auto_plan.get("channel"):
-        auto_plan["auto_handled"].append(f"Channel: {auto_plan['channel']}")
-    if auto_plan.get("ab_tests"):
-        auto_plan["auto_handled"].append(f"A/B tests: {auto_plan['ab_tests']} variants")
-    if auto_plan.get("variants"):
-        auto_plan["auto_handled"].append(f"Creative variants: {auto_plan['variants']}")
-    if auto_plan.get("length"):
-        auto_plan["auto_handled"].append(f"Video length: {auto_plan['length']}s")
-    if auto_plan.get("format"):
-        auto_plan["auto_handled"].append(f"Format: {auto_plan['format']}")
+    # Track what was auto-handled - using a more maintainable approach
+    handlers = [
+        ("segment", "Segment", None),
+        ("cadence", "Cadence", " days"),
+        ("channel", "Channel", None),
+        ("ab_tests", "A/B tests", " variants"),
+        ("variants", "Creative variants", None),
+        ("length", "Video length", "s"),
+        ("format", "Format", None),
+    ]
+    
+    for key, label, suffix in handlers:
+        value = auto_plan.get(key)
+        if value:
+            suffix_str = suffix if suffix else ""
+            auto_plan["auto_handled"].append(f"{label}: {value}{suffix_str}")
     
     return auto_plan
 
@@ -736,7 +750,16 @@ def creative_mode(console: Console) -> None:
     Handle the creative mode workflow.
     Prompts user for a creative idea, generates an auto plan, and renders the studio.
     """
-    creative_idea = Prompt.ask("What's your creative idea?")
+    creative_idea = Prompt.ask(
+        "What's your creative idea?",
+        default="Demo campaign"
+    )
+    
+    # Handle empty or whitespace-only input
+    if not creative_idea or not creative_idea.strip():
+        console.print("[yellow]No idea provided. Using default campaign settings.[/yellow]")
+        creative_idea = "General campaign"
+    
     auto_plan = generate_auto_plan(creative_idea)
     render_creative_studio(creative_idea, auto_plan, console)
 
