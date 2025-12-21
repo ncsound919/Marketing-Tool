@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -13,7 +13,6 @@ from rich.align import Align
 from rich.console import Console, Group
 from rich.layout import Layout
 from rich.panel import Panel
-from rich.progress import Progress
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
@@ -660,7 +659,7 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
         except (ValueError, TypeError):
             return None
     
-    sorted_actions = sorted(actions, key=lambda x: parse_date(x.get('due', '')) or datetime.max.date())
+    sorted_actions = sorted(actions, key=lambda x: parse_date(x.get('due', '')) or date.max)
     
     lines = []
     for item in sorted_actions:
@@ -681,6 +680,8 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
         
         lines.append(Text(f"{priority}• {title} (due {due_str})", style=color))
     
+    # Group is used to display multiple Text objects with different styles in a Panel
+    # (string join would lose the color formatting for each line)
     return Panel(
         Group(*lines),
         title="Today's Focus",
@@ -1058,6 +1059,8 @@ def parse_args() -> argparse.Namespace:
         dest="next_send",
         help="Next send date (YYYY-MM-DD). Defaults to today.",
     )
+    parser.add_argument("--brief", action="store_true", help="Morning brief view - Today's Focus + top 3 metrics.")
+    parser.add_argument("--export-cards", action="store_true", help="Export individual SVG panels for Slack/Teams.")
     parser.add_argument(
         "--select-strategy",
         help="Apply marketing strategy to segment (requires --segment).",
