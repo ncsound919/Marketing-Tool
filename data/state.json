@@ -10,21 +10,24 @@
         "Created < 30 days",
         "Matches ICP industries"
       ],
-      "size": 34
+      "size": 34,
+      "nurtured": 23
     },
     {
       "name": "Active Customers",
       "criteria": [
         "Touched product in last 14 days"
       ],
-      "size": 18
+      "size": 18,
+      "nurtured": 15
     },
     {
       "name": "Dormant Accounts",
       "criteria": [
         "No activity > 30 days"
       ],
-      "size": 12
+      "size": 12,
+      "nurtured": 5
     }
   ],
   "campaigns": [
@@ -35,7 +38,7 @@
       "channel": "Email",
       "template": "Welcome Series",
       "status": "scheduled",
-      "next_send": "2025-12-20"
+      "next_send": "2025-12-22"
     },
     {
       "name": "Win-back Sequence",
@@ -44,7 +47,7 @@
       "channel": "Email",
       "template": "Re-engagement",
       "status": "ready",
-      "next_send": "2025-12-20"
+      "next_send": "2025-12-22"
     },
     {
       "name": "Post-demo Follow-up",
@@ -53,7 +56,25 @@
       "channel": "Email + Call task",
       "template": "Demo Recap",
       "status": "running",
-      "next_send": "2025-12-19"
+      "next_send": "2025-12-21"
+    },
+    {
+      "name": "ABM: Identify target accounts",
+      "segment": "New Leads",
+      "trigger": "Strategy: ABM",
+      "channel": "Email",
+      "template": "ABM Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
+    },
+    {
+      "name": "RACE: Reach new audience",
+      "segment": "Dormant Accounts",
+      "trigger": "Strategy: RACE",
+      "channel": "Social",
+      "template": "RACE Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
     }
   ],
   "templates": [
@@ -61,21 +82,89 @@
       "name": "Welcome Series",
       "medium": "Email",
       "purpose": "Onboarding",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     },
     {
       "name": "Re-engagement",
       "medium": "Email",
       "purpose": "Win-back",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     },
     {
       "name": "Product Tour Deck",
       "medium": "Presentation",
       "purpose": "Sales enablement",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     }
   ],
+  "quick_templates": [
+    {
+      "name": "Demo Follow-up",
+      "copy": "Thanks for the demo! Here's what we discussed...",
+      "purpose": "Post-demo nurture"
+    },
+    {
+      "name": "Quarterly Business Review",
+      "copy": "Let's review your progress this quarter...",
+      "purpose": "Customer success"
+    },
+    {
+      "name": "Feature Announcement",
+      "copy": "We've just launched a new feature...",
+      "purpose": "Product updates"
+    },
+    {
+      "name": "Case Study Request",
+      "copy": "Your success story would inspire others...",
+      "purpose": "Social proof"
+    },
+    {
+      "name": "Renewal Reminder",
+      "copy": "Your subscription renews soon...",
+      "purpose": "Retention"
+    },
+    {
+      "name": "Webinar Invitation",
+      "copy": "Join us for an exclusive webinar...",
+      "purpose": "Education"
+    },
+    {
+      "name": "Free Trial Ending",
+      "copy": "Your trial ends in 3 days...",
+      "purpose": "Conversion"
+    },
+    {
+      "name": "Welcome to Beta",
+      "copy": "You're in! Here's how to get started...",
+      "purpose": "Beta onboarding"
+    },
+    {
+      "name": "Referral Request",
+      "copy": "Know someone who'd benefit?",
+      "purpose": "Growth"
+    },
+    {
+      "name": "Survey Request",
+      "copy": "Help us improve with 2 quick questions...",
+      "purpose": "Feedback"
+    },
+    {
+      "name": "Holiday Greeting",
+      "copy": "Happy holidays from our team...",
+      "purpose": "Relationship building"
+    },
+    {
+      "name": "Product Update Digest",
+      "copy": "Here's what's new this month...",
+      "purpose": "Engagement"
+    }
+  ],
+  "benchmarks": {
+    "open_rate": 0.28,
+    "click_rate": 0.15,
+    "reply_rate": 0.1,
+    "industry": "B2B SaaS"
+  },
   "integrations": [
     {
       "name": "CRM (HubSpot)",
@@ -97,19 +186,19 @@
     {
       "name": "HubSpot contacts",
       "status": "connected",
-      "last_sync": "2025-12-19",
+      "last_sync": "2025-12-21",
       "detail": "Contacts + deals"
     },
     {
       "name": "LinkedIn Ads",
       "status": "pending",
-      "last_sync": "—",
+      "last_sync": "\u2014",
       "detail": "Finish OAuth to pull audiences"
     },
     {
       "name": "SendGrid events",
       "status": "connected",
-      "last_sync": "2025-12-19",
+      "last_sync": "2025-12-21",
       "detail": "Bounces + clicks ingested"
     }
   ],
@@ -167,31 +256,121 @@
     {
       "name": "Post-demo pulse",
       "question": "How clear was the value prop?",
-      "last_sent": "2025-12-19",
+      "last_sent": "2025-12-21",
       "responses": 12
     },
     {
       "name": "Onboarding check-in",
       "question": "Did you activate the core workflow?",
-      "last_sent": "2025-12-19",
+      "last_sent": "2025-12-21",
       "responses": 8
     }
   ],
   "actions": [
     {
       "title": "A/B test CTA for New Leads",
-      "due": "2025-12-19",
+      "due": "2025-12-21",
       "owner": "You"
     },
     {
       "title": "Send nurture to Dormant Accounts",
-      "due": "2025-12-20",
+      "due": "2025-12-22",
       "owner": "You"
     },
     {
       "title": "Sync CRM deal stages",
-      "due": "2025-12-20",
+      "due": "2025-12-22",
       "owner": "You"
+    }
+  ],
+  "strategies": [
+    {
+      "name": "ABM",
+      "full_name": "Account-Based Marketing",
+      "description": "Target high-value accounts with personalized campaigns",
+      "steps": [
+        "Identify target accounts",
+        "Personalize content",
+        "Multi-channel outreach",
+        "Measure engagement"
+      ],
+      "channels": [
+        "Email",
+        "LinkedIn",
+        "Call"
+      ],
+      "best_for_segments": [
+        "New Leads",
+        "Active Customers"
+      ]
+    },
+    {
+      "name": "AIDA",
+      "full_name": "Attention-Interest-Desire-Action",
+      "description": "Classic content funnel framework",
+      "steps": [
+        "Grab attention",
+        "Build interest",
+        "Create desire",
+        "Drive action"
+      ],
+      "channels": [
+        "Email",
+        "Social",
+        "Ads"
+      ],
+      "best_for_segments": [
+        "All"
+      ]
+    },
+    {
+      "name": "RACE",
+      "full_name": "Reach-Act-Convert-Engage",
+      "description": "Omnichannel planning framework",
+      "steps": [
+        "Reach new audience",
+        "Act/Interact",
+        "Convert to leads",
+        "Engage long-term"
+      ],
+      "channels": [
+        "Social",
+        "Email",
+        "Website"
+      ],
+      "best_for_segments": [
+        "New Leads",
+        "Dormant Accounts"
+      ]
+    },
+    {
+      "name": "7Ps",
+      "full_name": "7Ps Marketing Mix",
+      "description": "Holistic B2B planning framework",
+      "steps": [
+        "Product",
+        "Price",
+        "Place",
+        "Promotion",
+        "People",
+        "Process",
+        "Physical Evidence"
+      ],
+      "channels": [
+        "All"
+      ],
+      "best_for_segments": [
+        "Active Customers"
+      ]
+    }
+  ],
+  "videos": [
+    {
+      "template": "Product Tour Deck",
+      "output_path": "data/videos/product_tour.mp4",
+      "duration": 45,
+      "status": "ready",
+      "generated": "2025-12-20"
     }
   ]
 }

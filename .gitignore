@@ -22,8 +22,8 @@ wheels/
 
 # Virtual environments
 venv/
-ENV/
 env/
+ENV/
 .venv
 
 # IDE
@@ -33,6 +33,7 @@ env/
 *.swo
 *~
 
-# OS
-.DS_Store
-Thumbs.db
+# Videos (generated content)
+data/videos/*.mp4
+data/videos/*.avi
+data/videos/*.mov

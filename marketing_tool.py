@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
 
 from rich import box
 from rich.align import Align
-from rich.console import Console
+from rich.console import Console, Group
 from rich.layout import Layout
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -62,16 +62,19 @@ def sample_state() -> Dict[str, Any]:
                 "name": "New Leads",
                 "criteria": ["Created < 30 days", "Matches ICP industries"],
                 "size": 34,
+                "nurtured": 23,
             },
             {
                 "name": "Active Customers",
                 "criteria": ["Touched product in last 14 days"],
                 "size": 18,
+                "nurtured": 15,
             },
             {
                 "name": "Dormant Accounts",
                 "criteria": ["No activity > 30 days"],
                 "size": 12,
+                "nurtured": 5,
             },
         ],
         "campaigns": [
@@ -123,6 +126,26 @@ def sample_state() -> Dict[str, Any]:
                 "last_updated": _today_iso(),
             },
         ],
+        "quick_templates": [
+            {"name": "Demo Follow-up", "copy": "Thanks for the demo! Here's what we discussed...", "purpose": "Post-demo nurture"},
+            {"name": "Quarterly Business Review", "copy": "Let's review your progress this quarter...", "purpose": "Customer success"},
+            {"name": "Feature Announcement", "copy": "We've just launched a new feature...", "purpose": "Product updates"},
+            {"name": "Case Study Request", "copy": "Your success story would inspire others...", "purpose": "Social proof"},
+            {"name": "Renewal Reminder", "copy": "Your subscription renews soon...", "purpose": "Retention"},
+            {"name": "Webinar Invitation", "copy": "Join us for an exclusive webinar...", "purpose": "Education"},
+            {"name": "Free Trial Ending", "copy": "Your trial ends in 3 days...", "purpose": "Conversion"},
+            {"name": "Welcome to Beta", "copy": "You're in! Here's how to get started...", "purpose": "Beta onboarding"},
+            {"name": "Referral Request", "copy": "Know someone who'd benefit?", "purpose": "Growth"},
+            {"name": "Survey Request", "copy": "Help us improve with 2 quick questions...", "purpose": "Feedback"},
+            {"name": "Holiday Greeting", "copy": "Happy holidays from our team...", "purpose": "Relationship building"},
+            {"name": "Product Update Digest", "copy": "Here's what's new this month...", "purpose": "Engagement"},
+        ],
+        "benchmarks": {
+            "open_rate": 0.28,
+            "click_rate": 0.15,
+            "reply_rate": 0.10,
+            "industry": "B2B SaaS"
+        },
         "integrations": [
             {"name": "CRM (HubSpot)", "status": "connected", "detail": "API token valid"},
             {"name": "Email (SendGrid)", "status": "connected", "detail": "Sender verified"},
@@ -209,11 +232,49 @@ def sample_state() -> Dict[str, Any]:
             {"title": "Send nurture to Dormant Accounts", "due": tomorrow.isoformat(), "owner": "You"},
             {"title": "Sync CRM deal stages", "due": tomorrow.isoformat(), "owner": "You"},
         ],
-        "automation_rules": {
-            "SMB_CTO": {"segment": "Tech Leads", "cadence": "0-3-7", "channel": "Email+LinkedIn"},
-            "Enterprise": {"segment": "VP Sales", "cadence": "0-5-14-30", "ab_tests": 3},
-            "Demo_video": {"variants": 2, "length": 90, "format": "MP4 vertical"},
-        },
+        "strategies": [
+            {
+                "name": "ABM",
+                "full_name": "Account-Based Marketing",
+                "description": "Target high-value accounts with personalized campaigns",
+                "steps": ["Identify target accounts", "Personalize content", "Multi-channel outreach", "Measure engagement"],
+                "channels": ["Email", "LinkedIn", "Call"],
+                "best_for_segments": ["New Leads", "Active Customers"],
+            },
+            {
+                "name": "AIDA",
+                "full_name": "Attention-Interest-Desire-Action",
+                "description": "Classic content funnel framework",
+                "steps": ["Grab attention", "Build interest", "Create desire", "Drive action"],
+                "channels": ["Email", "Social", "Ads"],
+                "best_for_segments": ["All"],
+            },
+            {
+                "name": "RACE",
+                "full_name": "Reach-Act-Convert-Engage",
+                "description": "Omnichannel planning framework",
+                "steps": ["Reach new audience", "Act/Interact", "Convert to leads", "Engage long-term"],
+                "channels": ["Social", "Email", "Website"],
+                "best_for_segments": ["New Leads", "Dormant Accounts"],
+            },
+            {
+                "name": "7Ps",
+                "full_name": "7Ps Marketing Mix",
+                "description": "Holistic B2B planning framework",
+                "steps": ["Product", "Price", "Place", "Promotion", "People", "Process", "Physical Evidence"],
+                "channels": ["All"],
+                "best_for_segments": ["Active Customers"],
+            },
+        ],
+        "videos": [
+            {
+                "template": "Product Tour Deck",
+                "output_path": "data/videos/product_tour.mp4",
+                "duration": 45,
+                "status": "ready",
+                "generated": "2025-12-20",
+            },
+        ],
     }
 
 
@@ -307,11 +368,20 @@ def build_segment_table(state: Dict[str, Any]) -> Table:
     table.add_column("Name")
     table.add_column("Criteria")
     table.add_column("Size", justify="right")
+    table.add_column("Progress", justify="right")
     for segment in state.get("segments", []):
+        size = segment.get("size", 0)
+        nurtured = segment.get("nurtured", 0)
+        if size > 0:
+            pct = (nurtured / size) * 100
+            progress_text = f"{pct:.0f}% nurtured"
+        else:
+            progress_text = "—"
         table.add_row(
             segment.get("name", "—"),
             "\n".join(f"• {c}" for c in segment.get("criteria", [])),
-            str(segment.get("size", "—")),
+            str(size),
+            progress_text,
         )
     return table
 
@@ -337,6 +407,65 @@ def build_template_table(state: Dict[str, Any]) -> Table:
             template.get("medium", "—"),
             template.get("purpose", "—"),
             template.get("last_updated", "—"),
+        )
+    return table
+
+
+def build_strategies_table(state: Dict[str, Any]) -> Table:
+    table = Table(
+        title="Strategies",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=True,
+        border_style=COLOR_ACCENT_GREEN,
+        style=BACKGROUND_STYLE,
+        header_style="bold white",
+        title_style=f"bold {COLOR_ACCENT_GREEN}",
+        row_styles=GLASS_ROW_STYLES,
+    )
+    table.add_column("Strategy")
+    table.add_column("Description")
+    table.add_column("Best Segments")
+    table.add_column("Status")
+    for strategy in state.get("strategies", []):
+        # Status is always "available" for strategies
+        status = Text("Available", style="green")
+        best_segments = ", ".join(strategy.get("best_for_segments", []))
+        table.add_row(
+            strategy.get("full_name", strategy.get("name", "—")),
+            strategy.get("description", "—"),
+            best_segments,
+            status,
+        )
+    return table
+
+
+def build_videos_table(state: Dict[str, Any]) -> Table:
+    table = Table(
+        title="Videos",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=True,
+        border_style=COLOR_ACCENT_AMBER,
+        style=BACKGROUND_STYLE,
+        header_style="bold white",
+        title_style=f"bold {COLOR_ACCENT_AMBER}",
+        row_styles=GLASS_ROW_STYLES,
+    )
+    table.add_column("Template")
+    table.add_column("Duration")
+    table.add_column("Status")
+    table.add_column("Generated")
+    table.add_column("Path")
+    for video in state.get("videos", []):
+        status_value = video.get("status", "unknown")
+        status = Text(status_value.title(), style=_status_color(status_value))
+        duration = video.get("duration", "—")
+        duration_str = f"{duration}s" if isinstance(duration, int) else str(duration)
+        table.add_row(
+            video.get("template", "—"),
+            duration_str,
+            status,
+            video.get("generated", "—"),
+            video.get("output_path", "—"),
         )
     return table
 
@@ -454,12 +583,42 @@ def build_feedback_table(state: Dict[str, Any]) -> Table:
 
 def build_analytics_panel(state: Dict[str, Any]) -> Panel:
     analytics = state.get("analytics", {})
-    lines = [
-        f"Open rate: {format_pct(analytics.get('open_rate', 0))}",
-        f"Click rate: {format_pct(analytics.get('click_rate', 0))}",
-        f"Reply rate: {format_pct(analytics.get('reply_rate', 0))}",
-        f"Conversions this week: {analytics.get('conversions', 0)}",
-    ]
+    benchmarks = state.get("benchmarks", {})
+    
+    lines = []
+    
+    # Display metrics with benchmark comparisons
+    open_rate = analytics.get('open_rate', 0)
+    click_rate = analytics.get('click_rate', 0)
+    reply_rate = analytics.get('reply_rate', 0)
+    
+    benchmark_open = benchmarks.get('open_rate', 0)
+    benchmark_click = benchmarks.get('click_rate', 0)
+    benchmark_reply = benchmarks.get('reply_rate', 0)
+    
+    if benchmark_open > 0:
+        open_diff = ((open_rate - benchmark_open) / benchmark_open) * 100
+        open_indicator = f" ({open_diff:+.0f}% vs avg)" if open_diff != 0 else ""
+        lines.append(f"Open rate: {format_pct(open_rate)}{open_indicator}")
+    else:
+        lines.append(f"Open rate: {format_pct(open_rate)}")
+    
+    if benchmark_click > 0:
+        click_diff = ((click_rate - benchmark_click) / benchmark_click) * 100
+        click_indicator = f" ({click_diff:+.0f}% vs avg)" if click_diff != 0 else ""
+        lines.append(f"Click rate: {format_pct(click_rate)}{click_indicator}")
+    else:
+        lines.append(f"Click rate: {format_pct(click_rate)}")
+    
+    if benchmark_reply > 0:
+        reply_diff = ((reply_rate - benchmark_reply) / benchmark_reply) * 100
+        reply_indicator = f" ({reply_diff:+.0f}% vs avg)" if reply_diff != 0 else ""
+        lines.append(f"Reply rate: {format_pct(reply_rate)}{reply_indicator}")
+    else:
+        lines.append(f"Reply rate: {format_pct(reply_rate)}")
+    
+    lines.append(f"Conversions this week: {analytics.get('conversions', 0)}")
+    
     ab_tests = analytics.get("ab_tests", [])
     if ab_tests:
         lines.append("A/B tests:")
@@ -490,9 +649,42 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
             style=BACKGROUND_STYLE,
             padding=(1, 2),
         )
-    lines = [f"• {item.get('title', 'Untitled')} (due {item.get('due', '—')})" for item in actions]
+    
+    # Sort actions by due date
+    today = datetime.now().date()
+    tomorrow = today + timedelta(days=1)
+    
+    def parse_date(date_str: str) -> datetime.date | None:
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return None
+    
+    sorted_actions = sorted(actions, key=lambda x: parse_date(x.get('due', '')) or date.max)
+    
+    lines = []
+    for item in sorted_actions:
+        title = item.get('title', 'Untitled')
+        due_str = item.get('due', '—')
+        due_date = parse_date(due_str)
+        
+        # Color code based on due date
+        if due_date == today:
+            color = "red"
+            priority = "🔴 "
+        elif due_date == tomorrow:
+            color = "yellow"
+            priority = "🟡 "
+        else:
+            color = "white"
+            priority = ""
+        
+        lines.append(Text(f"{priority}• {title} (due {due_str})", style=color))
+    
+    # Group is used to display multiple Text objects with different styles in a Panel
+    # (string join would lose the color formatting for each line)
     return Panel(
-        "\n".join(lines),
+        Group(*lines),
         title="Today's Focus",
         box=box.ROUNDED,
         border_style=COLOR_ACCENT_AMBER,
@@ -501,17 +693,128 @@ def build_actions_panel(state: Dict[str, Any]) -> Panel:
     )
 
 
+def build_quick_actions_menu() -> Text:
+    """Build a compact quick actions menu."""
+    actions_text = Text()
+    actions_text.append("Quick Actions: ", style="bold cyan")
+    actions_text.append("[1] New Campaign  ", style="cyan")
+    actions_text.append("[2] Export Report  ", style="cyan")
+    actions_text.append("[3] Sync All  ", style="cyan")
+    actions_text.append("[4] Reset Data  ", style="cyan")
+    actions_text.append("[5] View Templates  ", style="cyan")
+    actions_text.append("[6] Export Cards", style="cyan")
+    return actions_text
+
+
+def export_status_cards(state: Dict[str, Any], base_path: Path) -> None:
+    """Export individual SVG panels for campaigns, analytics, etc."""
+    base_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    profile = state.get("profile", {})
+    business_name = profile.get("business_name", "B2B Dashboard")
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    # Export Campaigns card
+    console_campaigns = themed_console(record=True)
+    console_campaigns.print(build_campaign_table(state))
+    card_path = base_path.parent / f"card_campaigns_{timestamp}.svg"
+    console_campaigns.save_svg(str(card_path), title=f"{business_name} - Campaigns")
+    
+    # Export Analytics card
+    console_analytics = themed_console(record=True)
+    console_analytics.print(build_analytics_panel(state))
+    card_path = base_path.parent / f"card_analytics_{timestamp}.svg"
+    console_analytics.save_svg(str(card_path), title=f"{business_name} - Analytics")
+    
+    # Export Segments card
+    console_segments = themed_console(record=True)
+    console_segments.print(build_segment_table(state))
+    card_path = base_path.parent / f"card_segments_{timestamp}.svg"
+    console_segments.save_svg(str(card_path), title=f"{business_name} - Segments")
+    
+    # Export Actions card
+    console_actions = themed_console(record=True)
+    console_actions.print(build_actions_panel(state))
+    card_path = base_path.parent / f"card_actions_{timestamp}.svg"
+    console_actions.save_svg(str(card_path), title=f"{business_name} - Today's Focus")
+    
+    status_console = themed_console()
+    status_console.print(f"[green]✓[/green] Exported 4 status cards to {base_path.parent}/")
+
+
+def render_brief_mode(state: Dict[str, Any], console: Console) -> None:
+    """Render a compact morning brief with Today's Focus and top 3 metrics."""
+    profile = state.get("profile", {})
+    business_name = profile.get("business_name", "B2B Dashboard")
+    
+    # Create a simple layout
+    console.print()
+    console.print(f"[bold cyan]✦ {business_name} - Morning Brief[/bold cyan]", justify="center")
+    console.print(f"[dim]{datetime.now().strftime('%B %d, %Y %H:%M')}[/dim]", justify="center")
+    console.print()
+    
+    # Today's Focus
+    actions = state.get("actions", [])
+    console.print("[bold yellow]Today's Focus:[/bold yellow]")
+    if actions:
+        today = datetime.now().date()
+        for item in actions[:3]:  # Show top 3
+            title = item.get('title', 'Untitled')
+            due_str = item.get('due', '—')
+            try:
+                due_date = datetime.strptime(due_str, "%Y-%m-%d").date()
+                if due_date == today:
+                    console.print(f"  🔴 {title}")
+                else:
+                    console.print(f"  • {title}")
+            except (ValueError, TypeError):
+                console.print(f"  • {title}")
+    else:
+        console.print("  ✓ You're all set for today!")
+    console.print()
+    
+    # Top 3 Metrics
+    analytics = state.get("analytics", {})
+    benchmarks = state.get("benchmarks", {})
+    console.print("[bold green]Top Metrics:[/bold green]")
+    
+    open_rate = analytics.get('open_rate', 0)
+    benchmark_open = benchmarks.get('open_rate', 0)
+    if benchmark_open > 0:
+        open_diff = ((open_rate - benchmark_open) / benchmark_open) * 100
+        console.print(f"  📧 Open rate: {format_pct(open_rate)} ({open_diff:+.0f}% vs avg)")
+    else:
+        console.print(f"  📧 Open rate: {format_pct(open_rate)}")
+    
+    click_rate = analytics.get('click_rate', 0)
+    benchmark_click = benchmarks.get('click_rate', 0)
+    if benchmark_click > 0:
+        click_diff = ((click_rate - benchmark_click) / benchmark_click) * 100
+        console.print(f"  👆 Click rate: {format_pct(click_rate)} ({click_diff:+.0f}% vs avg)")
+    else:
+        console.print(f"  👆 Click rate: {format_pct(click_rate)}")
+    
+    conversions = analytics.get('conversions', 0)
+    console.print(f"  🎯 Conversions this week: {conversions}")
+    console.print()
+
+
 def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | None = None) -> None:
     now = now or datetime.now()
     layout = Layout()
     layout.split_column(
         Layout(name="header", size=3),
+        Layout(name="quick_actions", size=1),
         Layout(name="body", ratio=1),
         Layout(name="footer", size=6),
     )
     layout["body"].split_row(Layout(name="left"), Layout(name="right"))
     layout["left"].split_column(Layout(name="campaigns"), Layout(name="segments"))
-    layout["right"].split_column(Layout(name="templates"), Layout(name="analytics"))
+    layout["right"].split_column(
+        Layout(name="templates"),
+        Layout(name="videos"),
+        Layout(name="strategies_analytics"),
+    )
 
     profile = state.get("profile", {})
     business_name = profile.get("business_name", "B2B Dashboard")
@@ -532,10 +835,20 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
             padding=(0, 2),
         )
     )
+    
+    # Add quick actions menu
+    layout["quick_actions"].update(Align.center(build_quick_actions_menu()))
 
     layout["campaigns"].update(build_campaign_table(state))
     layout["segments"].update(build_segment_table(state))
     layout["templates"].update(build_template_table(state))
+    layout["videos"].update(build_videos_table(state))
+    # Split strategies and analytics horizontally
+    layout["strategies_analytics"].split_row(
+        Layout(name="strategies"),
+        Layout(name="analytics"),
+    )
+    layout["strategies"].update(build_strategies_table(state))
     layout["analytics"].update(build_analytics_panel(state))
 
     footer_layout = Layout()
@@ -562,206 +875,143 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     console.print(layout)
 
 
-def generate_auto_plan(creative_idea: str) -> Dict[str, Any]:
-    """
-    Match user's creative idea to automation rules and generate a plan.
-    Uses keyword matching with scoring to determine which rule best applies.
-    The rule with the most keyword matches wins.
-    """
-    if not creative_idea or not creative_idea.strip():
-        # Handle empty input gracefully
-        creative_idea = "General campaign"
+def apply_strategy_to_segment(args: argparse.Namespace, state: Dict[str, Any]) -> None:
+    """Auto-generate campaigns/actions from selected strategy for a segment."""
+    strategy_name = args.select_strategy
+    segment_name = args.segment
     
-    idea_lower = creative_idea.lower()
+    # Find the strategy
+    strategies = state.get("strategies", [])
+    strategy = None
+    for s in strategies:
+        if s.get("name") == strategy_name or s.get("full_name") == strategy_name:
+            strategy = s
+            break
     
-    # Define keyword patterns for each rule
-    rule_patterns = {
-        "SMB_CTO": ["smb", "cto", "tech lead", "technical", "small business", "medium business"],
-        "Enterprise": ["enterprise", "vp", "sales", "large", "corporation"],
-        "Demo_video": ["demo", "video", "presentation", "recording", "mp4"],
-    }
+    if not strategy:
+        raise SystemExit(f"Strategy '{strategy_name}' not found. Available: {', '.join(s.get('name', '') for s in strategies)}")
     
-    # Score each rule based on keyword matches
-    scores = {}
-    for rule_name, keywords in rule_patterns.items():
-        score = sum(1 for keyword in keywords if keyword in idea_lower)
-        if score > 0:
-            scores[rule_name] = score
+    # Verify segment exists
+    segments = state.get("segments", [])
+    segment_exists = any(seg.get("name") == segment_name for seg in segments)
+    if not segment_exists:
+        raise SystemExit(f"Segment '{segment_name}' not found. Available: {', '.join(seg.get('name', '') for seg in segments)}")
     
-    # Find the best matching rule (highest score wins, first alphabetically if tied)
-    matched_rule = None
-    if scores:
-        max_score = max(scores.values())
-        # Get all rules with max score and pick first alphabetically for determinism
-        best_rules = sorted([name for name, score in scores.items() if score == max_score])
-        matched_rule = best_rules[0]
+    # Generate campaigns based on strategy steps
+    campaigns: List[Dict[str, Any]] = state.setdefault("campaigns", [])
+    channels = strategy.get("channels", ["Email"])
+    steps = strategy.get("steps", [])
     
-    # Default plan if no match found
-    default_plan = {
-        "rule_matched": "Default",
-        "segment": "General Audience",
-        "cadence": "0-7",
-        "channel": "Email",
-        "variants": 1,
-        "auto_handled": ["Segment selection", "Basic scheduling"],
-    }
+    tomorrow = (datetime.now().date() + timedelta(days=1)).isoformat()
     
-    if not matched_rule:
-        return default_plan
+    # Create a campaign for the first step of the strategy
+    if steps and channels:
+        campaign_name = f"{strategy.get('name', 'Strategy')}: {steps[0]}"
+        # Select a concrete channel from the strategy context:
+        # - Prefer the first channel that is not the special "All" marker.
+        # - If all channels are "All" (e.g., ["All"]), keep "All" to indicate omnichannel.
+        # - If channels is unexpectedly empty, fall back to "Email".
+        non_all_channels = [ch for ch in channels if ch != "All"]
+        if non_all_channels:
+            channel = non_all_channels[0]
+        else:
+            channel = channels[0] if channels else "Email"
+        
+        campaigns.append({
+            "name": campaign_name,
+            "segment": segment_name,
+            "trigger": f"Strategy: {strategy.get('name', '')}",
+            "channel": channel,
+            "template": f"{strategy.get('name', '')} Template",
+            "status": "ready",
+            "next_send": tomorrow,
+        })
     
-    # Load the actual rules from sample state
-    state = sample_state()
-    rules = state.get("automation_rules", {})
-    rule_config = rules.get(matched_rule, {})
-    
-    # Build the auto plan
-    auto_plan = {
-        "rule_matched": matched_rule,
-        "segment": rule_config.get("segment", "General Audience"),
-        "cadence": rule_config.get("cadence", "0-7"),
-        "channel": rule_config.get("channel", "Email"),
-        "variants": rule_config.get("variants", 1),
-        "ab_tests": rule_config.get("ab_tests"),
-        "length": rule_config.get("length"),
-        "format": rule_config.get("format"),
-        "auto_handled": [],
-    }
-    
-    # Track what was auto-handled - using a more maintainable approach
-    handlers = [
-        ("segment", "Segment", None),
-        ("cadence", "Cadence", " days"),
-        ("channel", "Channel", None),
-        ("ab_tests", "A/B tests", " variants"),
-        ("variants", "Creative variants", None),
-        ("length", "Video length", "s"),
-        ("format", "Format", None),
-    ]
-    
-    for key, label, suffix in handlers:
-        value = auto_plan.get(key)
-        if value:
-            suffix_str = suffix if suffix else ""
-            auto_plan["auto_handled"].append(f"{label}: {value}{suffix_str}")
-    
-    return auto_plan
+    save_state(state)
+    console = themed_console()
+    console.print(f"[green]✓[/green] Applied strategy '{strategy.get('full_name', strategy_name)}' to segment '{segment_name}'")
+    console.print(f"  Generated {1} campaign(s)")
 
 
-def render_creative_studio(creative_idea: str, auto_plan: Dict[str, Any], console: Console) -> None:
-    """
-    Render the Creative Studio UI with a 70/30 split layout.
-    Left (70%): Creation Studio for editing content
-    Right (30%): Auto-magic status showing what was handled automatically
-    """
-    layout = Layout()
-    layout.split_row(
-        Layout(name="studio", ratio=70),
-        Layout(name="automagic", ratio=30),
-    )
+def generate_marketing_video(args: argparse.Namespace, state: Dict[str, Any]) -> None:
+    """Generate video from template using MoviePy."""
+    template_name = args.template
+    output_path = args.output
     
-    # Build the Creation Studio panel (left side - 70%)
-    studio_content = []
-    studio_content.append(f"[bold {COLOR_ACCENT_CYAN}]Your Creative Idea:[/bold {COLOR_ACCENT_CYAN}]")
-    studio_content.append(f"  {creative_idea}")
-    studio_content.append("")
-    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Script (editable):[/bold {COLOR_ACCENT_GREEN}]")
-    studio_content.append("  → Opening hook: Grab attention in first 3 seconds")
-    studio_content.append("  → Problem statement: What pain point are we solving?")
-    studio_content.append("  → Solution demo: Show the product in action")
-    studio_content.append("  → Call to action: Book a demo / Start trial")
-    studio_content.append("")
-    studio_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Thumbnails:[/bold {COLOR_ACCENT_PURPLE}]")
-    studio_content.append("  [Thumbnail A] Bold text with product screenshot")
-    studio_content.append("  [Thumbnail B] Face + emotion-driven design")
-    studio_content.append("")
-    studio_content.append(f"[bold {COLOR_ACCENT_AMBER}]Voiceover:[/bold {COLOR_ACCENT_AMBER}]")
-    studio_content.append("  Professional voice (auto-generated available)")
-    studio_content.append("")
-    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Actions:[/bold {COLOR_ACCENT_GREEN}]")
-    studio_content.append("  [Launch] Deploy campaign (segments, timing, syncs handled)")
-    studio_content.append("  [Preview] See how it looks across channels")
-    studio_content.append("  [Edit] Modify script, thumbnails, or voiceover")
+    # Verify template exists
+    templates = state.get("templates", [])
+    template = None
+    for t in templates:
+        if t.get("name") == template_name:
+            template = t
+            break
     
-    studio_panel = Panel(
-        "\n".join(studio_content),
-        title="Creation Studio",
-        box=box.ROUNDED,
-        border_style=COLOR_ACCENT_CYAN,
-        style=BACKGROUND_STYLE,
-        padding=(1, 2),
-    )
+    if not template:
+        raise SystemExit(f"Template '{template_name}' not found. Available: {', '.join(t.get('name', '') for t in templates)}")
     
-    # Build the Auto-magic Status panel (right side - 30%)
-    auto_content = []
-    auto_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Rule Matched:[/bold {COLOR_ACCENT_PURPLE}]")
-    auto_content.append(f"  {auto_plan.get('rule_matched', 'None')}")
-    auto_content.append("")
-    auto_content.append(f"[bold {COLOR_ACCENT_GREEN}]Auto-handled:[/bold {COLOR_ACCENT_GREEN}]")
+    # Create output directory
+    output_file = Path(output_path)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     
-    auto_handled = auto_plan.get("auto_handled", [])
-    if auto_handled:
-        for item in auto_handled:
-            auto_content.append(f"  ✓ {item}")
-    else:
-        auto_content.append("  (none)")
-    
-    auto_content.append("")
-    auto_content.append(f"[bold {COLOR_ACCENT_AMBER}]Status:[/bold {COLOR_ACCENT_AMBER}]")
-    auto_content.append("  ✓ Segments configured")
-    auto_content.append("  ✓ Scheduling ready")
-    auto_content.append("  ✓ Syncs prepared")
-    auto_content.append("  → Ready to launch!")
-    
-    auto_panel = Panel(
-        "\n".join(auto_content),
-        title="Auto-magic Status",
-        box=box.ROUNDED,
-        border_style=COLOR_ACCENT_AMBER,
-        style=BACKGROUND_STYLE,
-        padding=(1, 2),
-    )
-    
-    layout["studio"].update(studio_panel)
-    layout["automagic"].update(auto_panel)
-    
-    # Print header
-    header_text = Text(
-        "✦ Creative Mode • Easy Campaign Creation",
-        style="bold #e2e8f0",
-        justify="center",
-    )
-    header_panel = Panel(
-        Align.center(header_text),
-        border_style=COLOR_ACCENT_AMBER,
-        box=box.ROUNDED,
-        style=BACKGROUND_STYLE,
-        padding=(0, 2),
-    )
-    console.print(header_panel)
-    console.print()
-    console.print(layout)
-    console.print()
-    console.print(f"[dim]The system has handled the dirty work (segments, scheduling, syncs) automatically.[/dim]")
-    console.print(f"[{COLOR_ACCENT_GREEN}]Press Launch when ready to deploy your campaign![/{COLOR_ACCENT_GREEN}]")
+    # Simple video generation using MoviePy
+    try:
+        from moviepy.editor import TextClip, CompositeVideoClip
+        
+        # Create a simple text-based video
+        duration = 10  # 10 seconds default
+        txt_clip = None
+        video = None
+        try:
+            txt_clip = TextClip(
+                f"{template_name}\n\nGenerated by Marketing Tool",
+                fontsize=50,
+                color='white',
+                bg_color='black',
+                size=(1280, 720),
+                method='caption',
+            )
+            txt_clip = txt_clip.set_duration(duration)
+            
+            video = CompositeVideoClip([txt_clip])
+            video.write_videofile(str(output_file), fps=24, codec='libx264', audio=False, logger=None)
+        finally:
+            if video is not None:
+                video.close()
+            if txt_clip is not None:
+                txt_clip.close()
+        
+        # Add to state (update existing entry for the same output_path instead of duplicating)
+        videos: List[Dict[str, Any]] = state.setdefault("videos", [])
+        output_path_str = str(output_path)
 
+        # Check for existing video with the same output_path
+        existing_video = None
+        for video_entry in videos:
+            if video_entry.get("output_path") == output_path_str:
+                existing_video = video_entry
+                break
 
-def creative_mode(console: Console) -> None:
-    """
-    Handle the creative mode workflow.
-    Prompts user for a creative idea, generates an auto plan, and renders the studio.
-    """
-    creative_idea = Prompt.ask(
-        "What's your creative idea?",
-        default="Demo campaign"
-    )
-    
-    # Handle empty or whitespace-only input
-    if not creative_idea or not creative_idea.strip():
-        console.print("[yellow]No idea provided. Using default campaign settings.[/yellow]")
-        creative_idea = "General campaign"
-    
-    auto_plan = generate_auto_plan(creative_idea)
-    render_creative_studio(creative_idea, auto_plan, console)
+        video_data = {
+            "template": template_name,
+            "output_path": output_path_str,
+            "duration": duration,
+            "status": "ready",
+            "generated": _today_iso(),
+        }
+
+        if existing_video is not None:
+            existing_video.update(video_data)
+        else:
+            videos.append(video_data)
+        
+        save_state(state)
+        console = themed_console()
+        console.print(f"[green]✓[/green] Generated video from template '{template_name}' to '{output_path}'")
+        
+    except ImportError:
+        raise SystemExit("MoviePy not installed. Install with: pip install moviepy")
+    except Exception as e:
+        raise SystemExit(f"Failed to generate video: {e}")
 
 
 def add_campaign(args: argparse.Namespace, state: Dict[str, Any]) -> None:
@@ -811,6 +1061,21 @@ def parse_args() -> argparse.Namespace:
         dest="next_send",
         help="Next send date (YYYY-MM-DD). Defaults to today.",
     )
+    parser.add_argument("--brief", action="store_true", help="Morning brief view - Today's Focus + top 3 metrics.")
+    parser.add_argument("--export-cards", action="store_true", help="Export individual SVG panels for Slack/Teams.")
+    parser.add_argument(
+        "--select-strategy",
+        help="Apply marketing strategy to segment (requires --segment).",
+    )
+    parser.add_argument(
+        "--generate-video",
+        action="store_true",
+        help="Generate video from template (requires --template and --output).",
+    )
+    parser.add_argument(
+        "--output",
+        help="Output path for generated video.",
+    )
     return parser.parse_args()
 
 
@@ -840,8 +1105,11 @@ def validate_next_send(next_send: str | None) -> str | None:
 def should_render_dashboard(args: argparse.Namespace) -> bool:
     if args.summary or args.snapshot:
         return True
+    # Don't render full dashboard for brief mode or export-cards
+    if args.brief or args.export_cards:
+        return False
     # Default to rendering the dashboard when no mutating actions are requested.
-    return not any([args.add_campaign, args.reset_sample, args.creative_mode])
+    return not any([args.add_campaign, args.reset_sample, args.select_strategy, args.generate_video])
 
 
 def main() -> None:
@@ -856,6 +1124,27 @@ def main() -> None:
     if args.add_campaign:
         ensure_valid_campaign_args(args)
         add_campaign(args, state)
+    
+    if args.select_strategy:
+        if not args.segment:
+            raise SystemExit("--select-strategy requires --segment to be specified")
+        apply_strategy_to_segment(args, state)
+    
+    if args.generate_video:
+        if not args.template or not args.output:
+            raise SystemExit("--generate-video requires both --template and --output to be specified")
+        generate_marketing_video(args, state)
+
+    # Handle brief mode
+    if args.brief:
+        console = themed_console()
+        render_brief_mode(state, console)
+        return
+
+    # Handle export-cards mode
+    if args.export_cards:
+        export_status_cards(state, args.snapshot_path)
+        return
 
     console = themed_console(record=args.snapshot)
 
@@ -870,7 +1159,13 @@ def main() -> None:
 
     if args.snapshot:
         args.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-        console.save_svg(str(args.snapshot_path), title="B2B Engagement Dashboard")
+        
+        # Add branded watermark
+        profile = state.get("profile", {})
+        business_name = profile.get("business_name", "B2B Dashboard")
+        watermark = f"Generated by {business_name} Marketing Tool • {datetime.now().strftime('%Y-%m-%d')}"
+        
+        console.save_svg(str(args.snapshot_path), title=watermark)
         status_console = themed_console()
         status_console.print(f"Saved snapshot to {args.snapshot_path}")
 

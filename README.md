@@ -6,13 +6,18 @@ Desktop-style command center for enhancing B2B customer engagement through autom
 
 - **Automation dashboard**: manage trigger-based email/pipeline follow-ups per segment.
 - **Creation studio**: keep marketing templates (email, decks, social) close at hand.
-- **Creative mode**: easy campaign creation for inexperienced users with smart automation.
+- **Marketing strategies**: apply proven frameworks (ABM, AIDA, RACE, 7Ps) to customer segments.
+- **Video generation**: create marketing videos from templates using MoviePy.
 - **Segmentation**: track key customer groups and their criteria.
 - **Connectors & integrations**: quick view of CRM, email, and social connection health plus sync status.
 - **Operational health**: backend services and databases with latency, errors, and storage snapshots.
-- **Analytics & A/B**: monitor open/click/reply rates and experiment winners.
+- **Analytics & A/B**: monitor open/click/reply rates and experiment winners with benchmark comparisons vs. industry averages.
 - **Feedback tools**: surveys/questions you routinely send after demos or onboarding.
-- **Morning focus list**: the top few actions to move engagement forward.
+- **Morning focus list**: the top few actions to move engagement forward, color-coded by priority (red for today, yellow for tomorrow).
+- **Quick Actions Menu**: 6 one-click shortcuts at the dashboard top for common tasks.
+- **Morning Brief Mode**: Compact view showing Today's Focus and top 3 metrics for daily standups.
+- **Shareable Status Cards**: Export individual SVG panels for Slack/Teams sharing.
+- **Branded Watermarks**: Auto-added business name and date to all SVG exports for professional sharing.
 
 ## Quick start
 
@@ -49,19 +54,57 @@ python marketing_tool.py --add-campaign \
    ```bash
    python marketing_tool.py --snapshot
    ```
-   The snapshot is saved to `docs/dashboard_snapshot.svg`.
+   The snapshot is saved to `docs/dashboard_snapshot.svg` with your business name as a watermark.
+
+5. Get a quick morning brief with today's focus and top 3 metrics:
+   ```bash
+   python marketing_tool.py --brief
+   ```
+
+6. Export individual status cards for sharing in Slack/Teams:
+   ```bash
+   python marketing_tool.py --export-cards
+   ```
+   Cards are saved to `docs/card_*.svg` with timestamps.
 
 If you want to restore the original sample data at any time:
 ```bash
 python marketing_tool.py --reset-sample
 ```
 
-## Creative Mode
+## Marketing Strategies
 
-Creative Mode is designed for inexperienced users who want to quickly create campaigns without worrying about the technical details. The system includes predefined automation rules that match common scenarios:
+Apply marketing strategies to automatically generate campaigns for your segments:
 
-- **SMB_CTO**: Campaigns targeting tech leads at small/medium businesses (Email+LinkedIn, 0-3-7 day cadence)
-- **Enterprise**: High-touch campaigns for VP-level executives (0-5-14-30 day cadence, 3 A/B test variants)
-- **Demo_video**: Video content campaigns (2 variants, 90s length, MP4 vertical format)
+```bash
+# Apply Account-Based Marketing (ABM) strategy to New Leads
+python marketing_tool.py --select-strategy ABM --segment "New Leads"
 
-Simply describe your idea and let the system handle segments, scheduling, and channel selection automatically!
+# Apply AIDA (Attention-Interest-Desire-Action) strategy
+python marketing_tool.py --select-strategy AIDA --segment "Active Customers"
+
+# Apply RACE (Reach-Act-Convert-Engage) strategy
+python marketing_tool.py --select-strategy RACE --segment "Dormant Accounts"
+
+# Apply 7Ps Marketing Mix strategy
+python marketing_tool.py --select-strategy 7Ps --segment "Active Customers"
+```
+
+Available strategies:
+- **ABM** (Account-Based Marketing): Target high-value accounts with personalized campaigns
+- **AIDA** (Attention-Interest-Desire-Action): Classic content funnel framework
+- **RACE** (Reach-Act-Convert-Engage): Omnichannel planning framework
+- **7Ps** (7Ps Marketing Mix): Holistic B2B planning framework
+
+## Video Generation
+
+Generate marketing videos from templates:
+
+```bash
+# Generate a video from the "Product Tour Deck" template
+python marketing_tool.py --generate-video \
+  --template "Product Tour Deck" \
+  --output "data/videos/product_tour.mp4"
+```
+
+**Note**: Video generation requires `moviepy`. If not installed, you'll see an error message with installation instructions.
