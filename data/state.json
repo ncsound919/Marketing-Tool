@@ -63,6 +63,24 @@
       "template": "ABM Template",
       "status": "ready",
       "next_send": "2025-12-22"
+    },
+    {
+      "name": "AIDA: Grab attention",
+      "segment": "Active Customers",
+      "trigger": "Strategy: AIDA",
+      "channel": "Email",
+      "template": "AIDA Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
+    },
+    {
+      "name": "RACE: Reach new audience",
+      "segment": "Dormant Accounts",
+      "trigger": "Strategy: RACE",
+      "channel": "Social",
+      "template": "RACE Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
     }
   ],
   "templates": [
