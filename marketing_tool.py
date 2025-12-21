@@ -759,15 +759,29 @@ def generate_marketing_video(args: argparse.Namespace, state: Dict[str, Any]) ->
         video = CompositeVideoClip([txt_clip])
         video.write_videofile(str(output_file), fps=24, codec='libx264', audio=False, logger=None)
         
-        # Add to state
+        # Add to state (update existing entry for the same output_path instead of duplicating)
         videos: List[Dict[str, Any]] = state.setdefault("videos", [])
-        videos.append({
+        output_path_str = str(output_path)
+
+        # Check for existing video with the same output_path
+        existing_video = None
+        for video_entry in videos:
+            if video_entry.get("output_path") == output_path_str:
+                existing_video = video_entry
+                break
+
+        video_data = {
             "template": template_name,
-            "output_path": str(output_path),
+            "output_path": output_path_str,
             "duration": duration,
             "status": "ready",
             "generated": _today_iso(),
-        })
+        }
+
+        if existing_video is not None:
+            existing_video.update(video_data)
+        else:
+            videos.append(video_data)
         
         save_state(state)
         console = themed_console()
