@@ -275,6 +275,11 @@ def sample_state() -> Dict[str, Any]:
                 "generated": "2025-12-20",
             },
         ],
+        "automation_rules": {
+            "SMB_CTO": {"segment": "Tech Leads", "cadence": "0-3-7", "channel": "Email+LinkedIn"},
+            "Enterprise": {"segment": "VP Sales", "cadence": "0-5-14-30", "ab_tests": 3},
+            "Demo_video": {"variants": 2, "length": 90, "format": "MP4 vertical"},
+        },
     }
 
 
@@ -1012,6 +1017,215 @@ def generate_marketing_video(args: argparse.Namespace, state: Dict[str, Any]) ->
         raise SystemExit("MoviePy not installed. Install with: pip install moviepy")
     except Exception as e:
         raise SystemExit(f"Failed to generate video: {e}")
+
+
+def generate_auto_plan(creative_idea: str, automation_rules: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """
+    Match user's creative idea to automation rules and generate a plan.
+    Uses keyword matching with scoring to determine which rule best applies.
+    The rule with the most keyword matches wins.
+    
+    Args:
+        creative_idea: The user's creative campaign idea
+        automation_rules: Optional dict of automation rules. If not provided, loads from sample_state()
+    
+    Returns:
+        Dict containing the matched rule and auto-configured plan
+    """
+    if not creative_idea or not creative_idea.strip():
+        # Handle empty input gracefully
+        creative_idea = "General campaign"
+    
+    idea_lower = creative_idea.lower()
+    
+    # Define keyword patterns for each rule
+    # NOTE: These patterns are hardcoded and must be kept in sync with automation_rules
+    # in sample_state(). If you add/modify rules, update both locations.
+    rule_patterns = {
+        "SMB_CTO": ["smb", "cto", "tech lead", "technical", "small business", "medium business"],
+        "Enterprise": ["enterprise", "vp", "sales", "large", "corporation"],
+        "Demo_video": ["demo", "video", "presentation", "recording", "mp4"],
+    }
+    
+    # Score each rule based on keyword matches
+    scores = {}
+    for rule_name, keywords in rule_patterns.items():
+        score = sum(1 for keyword in keywords if keyword in idea_lower)
+        if score > 0:
+            scores[rule_name] = score
+    
+    # Find the best matching rule (highest score wins, first alphabetically if tied)
+    matched_rule = None
+    if scores:
+        max_score = max(scores.values())
+        # Get all rules with max score and pick first alphabetically for determinism
+        best_rules = sorted([name for name, score in scores.items() if score == max_score])
+        matched_rule = best_rules[0]
+    
+    # Default plan if no match found
+    default_plan = {
+        "rule_matched": "Default",
+        "segment": "General Audience",
+        "cadence": "0-7",
+        "channel": "Email",
+        "variants": 1,
+        "auto_handled": ["Segment selection", "Basic scheduling"],
+    }
+    
+    if not matched_rule:
+        return default_plan
+    
+    # Load the actual rules - use provided rules or load from sample state
+    if automation_rules is None:
+        state = sample_state()
+        automation_rules = state.get("automation_rules", {})
+    
+    rule_config = automation_rules.get(matched_rule, {})
+    
+    # Build the auto plan
+    auto_plan = {
+        "rule_matched": matched_rule,
+        "segment": rule_config.get("segment", "General Audience"),
+        "cadence": rule_config.get("cadence", "0-7"),
+        "channel": rule_config.get("channel", "Email"),
+        "variants": rule_config.get("variants", 1),
+        "ab_tests": rule_config.get("ab_tests"),
+        "length": rule_config.get("length"),
+        "format": rule_config.get("format"),
+        "auto_handled": [],
+    }
+    
+    # Track what was auto-handled - using a more maintainable approach
+    handlers = [
+        ("segment", "Segment", None),
+        ("cadence", "Cadence", None),  # Cadence values are already formatted strings like "0-3-7"
+        ("channel", "Channel", None),
+        ("ab_tests", "A/B tests", " variants"),
+        ("variants", "Creative variants", None),
+        ("length", "Video length", "s"),
+        ("format", "Format", None),
+    ]
+    
+    for key, label, suffix in handlers:
+        value = auto_plan.get(key)
+        if value:
+            suffix_str = suffix if suffix else ""
+            auto_plan["auto_handled"].append(f"{label}: {value}{suffix_str}")
+    
+    return auto_plan
+
+
+def render_creative_studio(creative_idea: str, auto_plan: Dict[str, Any], console: Console) -> None:
+    """
+    Render the Creative Studio UI with a 70/30 split layout.
+    Left (70%): Creation Studio for editing content
+    Right (30%): Auto-magic status showing what was handled automatically
+    """
+    layout = Layout()
+    layout.split_row(
+        Layout(name="studio", ratio=70),
+        Layout(name="automagic", ratio=30),
+    )
+    
+    # Build the Creation Studio panel (left side - 70%)
+    studio_content = []
+    studio_content.append(f"[bold {COLOR_ACCENT_CYAN}]Your Creative Idea:[/bold {COLOR_ACCENT_CYAN}]")
+    studio_content.append(f"  {creative_idea}")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Script (editable):[/bold {COLOR_ACCENT_GREEN}]")
+    studio_content.append("  → Opening hook: Grab attention in first 3 seconds")
+    studio_content.append("  → Problem statement: What pain point are we solving?")
+    studio_content.append("  → Solution demo: Show the product in action")
+    studio_content.append("  → Call to action: Book a demo / Start trial")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Thumbnails:[/bold {COLOR_ACCENT_PURPLE}]")
+    studio_content.append("  [Thumbnail A] Bold text with product screenshot")
+    studio_content.append("  [Thumbnail B] Face + emotion-driven design")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_AMBER}]Voiceover:[/bold {COLOR_ACCENT_AMBER}]")
+    studio_content.append("  Professional voice (auto-generated available)")
+    studio_content.append("")
+    studio_content.append(f"[bold {COLOR_ACCENT_GREEN}]Actions:[/bold {COLOR_ACCENT_GREEN}]")
+    studio_content.append("  [Launch] Deploy campaign (segments, timing, syncs handled)")
+    studio_content.append("  [Preview] See how it looks across channels")
+    studio_content.append("  [Edit] Modify script, thumbnails, or voiceover")
+    
+    studio_panel = Panel(
+        "\n".join(studio_content),
+        title="Creation Studio",
+        box=box.ROUNDED,
+        border_style=COLOR_ACCENT_CYAN,
+        style=BACKGROUND_STYLE,
+        padding=(1, 2),
+    )
+    
+    # Build the Auto-magic Status panel (right side - 30%)
+    auto_content = []
+    auto_content.append(f"[bold {COLOR_ACCENT_PURPLE}]Rule Matched:[/bold {COLOR_ACCENT_PURPLE}]")
+    auto_content.append(f"  {auto_plan.get('rule_matched', 'None')}")
+    auto_content.append("")
+    auto_content.append(f"[bold {COLOR_ACCENT_GREEN}]Auto-handled:[/bold {COLOR_ACCENT_GREEN}]")
+    
+    auto_handled = auto_plan.get("auto_handled", [])
+    if auto_handled:
+        for item in auto_handled:
+            auto_content.append(f"  ✓ {item}")
+    else:
+        auto_content.append("  (none)")
+    
+    auto_content.append("")
+    auto_content.append(f"[bold {COLOR_ACCENT_AMBER}]Status:[/bold {COLOR_ACCENT_AMBER}]")
+    auto_content.append("  ✓ Segments configured")
+    auto_content.append("  ✓ Scheduling ready")
+    auto_content.append("  ✓ Syncs prepared")
+    auto_content.append("  → Ready to launch!")
+    
+    auto_panel = Panel(
+        "\n".join(auto_content),
+        title="Auto-magic Status",
+        box=box.ROUNDED,
+        border_style=COLOR_ACCENT_AMBER,
+        style=BACKGROUND_STYLE,
+        padding=(1, 2),
+    )
+    
+    layout["studio"].update(studio_panel)
+    layout["automagic"].update(auto_panel)
+    
+    # Print header
+    header_text = Text(
+        "✦ Creative Mode • Easy Campaign Creation",
+        style="bold #e2e8f0",
+        justify="center",
+    )
+    header_panel = Panel(
+        Align.center(header_text),
+        border_style=COLOR_ACCENT_AMBER,
+        box=box.ROUNDED,
+        style=BACKGROUND_STYLE,
+        padding=(0, 2),
+    )
+    console.print(header_panel)
+    console.print()
+    console.print(layout)
+    console.print()
+    console.print(f"[dim]The system has handled the dirty work (segments, scheduling, syncs) automatically.[/dim]")
+    console.print(f"[{COLOR_ACCENT_GREEN}]Press Launch when ready to deploy your campaign![/{COLOR_ACCENT_GREEN}]")
+
+
+def creative_mode(console: Console) -> None:
+    """
+    Handle the creative mode workflow.
+    Prompts user for a creative idea, generates an auto plan, and renders the studio.
+    """
+    creative_idea = Prompt.ask(
+        "What's your creative idea?",
+        default="Demo campaign"
+    )
+    
+    # generate_auto_plan already handles empty/whitespace input, no need for duplicate validation
+    auto_plan = generate_auto_plan(creative_idea)
+    render_creative_studio(creative_idea, auto_plan, console)
 
 
 def add_campaign(args: argparse.Namespace, state: Dict[str, Any]) -> None:
