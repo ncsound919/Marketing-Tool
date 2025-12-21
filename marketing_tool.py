@@ -637,7 +637,6 @@ def render_dashboard(state: Dict[str, Any], console: Console, now: datetime | No
     layout["segments"].update(build_segment_table(state))
     layout["templates"].update(build_template_table(state))
     layout["videos"].update(build_videos_table(state))
-    
     # Split strategies and analytics horizontally
     layout["strategies_analytics"].split_row(
         Layout(name="strategies"),
