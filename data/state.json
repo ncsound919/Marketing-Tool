@@ -35,7 +35,7 @@
       "channel": "Email",
       "template": "Welcome Series",
       "status": "scheduled",
-      "next_send": "2025-12-20"
+      "next_send": "2025-12-22"
     },
     {
       "name": "Win-back Sequence",
@@ -44,7 +44,7 @@
       "channel": "Email",
       "template": "Re-engagement",
       "status": "ready",
-      "next_send": "2025-12-20"
+      "next_send": "2025-12-22"
     },
     {
       "name": "Post-demo Follow-up",
@@ -53,7 +53,25 @@
       "channel": "Email + Call task",
       "template": "Demo Recap",
       "status": "running",
-      "next_send": "2025-12-19"
+      "next_send": "2025-12-21"
+    },
+    {
+      "name": "ABM: Identify target accounts",
+      "segment": "New Leads",
+      "trigger": "Strategy: ABM",
+      "channel": "Email",
+      "template": "ABM Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
+    },
+    {
+      "name": "RACE: Reach new audience",
+      "segment": "Dormant Accounts",
+      "trigger": "Strategy: RACE",
+      "channel": "Social",
+      "template": "RACE Template",
+      "status": "ready",
+      "next_send": "2025-12-22"
     }
   ],
   "templates": [
@@ -61,19 +79,19 @@
       "name": "Welcome Series",
       "medium": "Email",
       "purpose": "Onboarding",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     },
     {
       "name": "Re-engagement",
       "medium": "Email",
       "purpose": "Win-back",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     },
     {
       "name": "Product Tour Deck",
       "medium": "Presentation",
       "purpose": "Sales enablement",
-      "last_updated": "2025-12-19"
+      "last_updated": "2025-12-21"
     }
   ],
   "integrations": [
@@ -97,19 +115,19 @@
     {
       "name": "HubSpot contacts",
       "status": "connected",
-      "last_sync": "2025-12-19",
+      "last_sync": "2025-12-21",
       "detail": "Contacts + deals"
     },
     {
       "name": "LinkedIn Ads",
       "status": "pending",
-      "last_sync": "—",
+      "last_sync": "\u2014",
       "detail": "Finish OAuth to pull audiences"
     },
     {
       "name": "SendGrid events",
       "status": "connected",
-      "last_sync": "2025-12-19",
+      "last_sync": "2025-12-21",
       "detail": "Bounces + clicks ingested"
     }
   ],
@@ -167,31 +185,121 @@
     {
       "name": "Post-demo pulse",
       "question": "How clear was the value prop?",
-      "last_sent": "2025-12-19",
+      "last_sent": "2025-12-21",
       "responses": 12
     },
     {
       "name": "Onboarding check-in",
       "question": "Did you activate the core workflow?",
-      "last_sent": "2025-12-19",
+      "last_sent": "2025-12-21",
       "responses": 8
     }
   ],
   "actions": [
     {
       "title": "A/B test CTA for New Leads",
-      "due": "2025-12-19",
+      "due": "2025-12-21",
       "owner": "You"
     },
     {
       "title": "Send nurture to Dormant Accounts",
-      "due": "2025-12-20",
+      "due": "2025-12-22",
       "owner": "You"
     },
     {
       "title": "Sync CRM deal stages",
-      "due": "2025-12-20",
+      "due": "2025-12-22",
       "owner": "You"
+    }
+  ],
+  "strategies": [
+    {
+      "name": "ABM",
+      "full_name": "Account-Based Marketing",
+      "description": "Target high-value accounts with personalized campaigns",
+      "steps": [
+        "Identify target accounts",
+        "Personalize content",
+        "Multi-channel outreach",
+        "Measure engagement"
+      ],
+      "channels": [
+        "Email",
+        "LinkedIn",
+        "Call"
+      ],
+      "best_for_segments": [
+        "New Leads",
+        "Active Customers"
+      ]
+    },
+    {
+      "name": "AIDA",
+      "full_name": "Attention-Interest-Desire-Action",
+      "description": "Classic content funnel framework",
+      "steps": [
+        "Grab attention",
+        "Build interest",
+        "Create desire",
+        "Drive action"
+      ],
+      "channels": [
+        "Email",
+        "Social",
+        "Ads"
+      ],
+      "best_for_segments": [
+        "All"
+      ]
+    },
+    {
+      "name": "RACE",
+      "full_name": "Reach-Act-Convert-Engage",
+      "description": "Omnichannel planning framework",
+      "steps": [
+        "Reach new audience",
+        "Act/Interact",
+        "Convert to leads",
+        "Engage long-term"
+      ],
+      "channels": [
+        "Social",
+        "Email",
+        "Website"
+      ],
+      "best_for_segments": [
+        "New Leads",
+        "Dormant Accounts"
+      ]
+    },
+    {
+      "name": "7Ps",
+      "full_name": "7Ps Marketing Mix",
+      "description": "Holistic B2B planning framework",
+      "steps": [
+        "Product",
+        "Price",
+        "Place",
+        "Promotion",
+        "People",
+        "Process",
+        "Physical Evidence"
+      ],
+      "channels": [
+        "All"
+      ],
+      "best_for_segments": [
+        "Active Customers"
+      ]
+    }
+  ],
+  "videos": [
+    {
+      "template": "Product Tour Deck",
+      "output_path": "data/videos/product_tour.mp4",
+      "duration": 45,
+      "status": "ready",
+      "generated": "2025-12-20"
     }
   ]
 }
